@@ -2,32 +2,36 @@
 
 > **Protect revenue. Rescue cash. Keep MSMEs moving.**
 
-CashPulse AI is a competition-grade, production-oriented financial operations layer for MSMEs. It detects revenue at risk, diagnoses payment/receivables bottlenecks, enforces safety guidelines via a policy engine, and triggers automated recoveries using Razorpay Test Mode APIs.
+CashPulse AI is a competition-grade, production-oriented financial operations layer for MSMEs. It detects cash at risk, diagnoses payment bottlenecks, enforces safety guidelines via a policy engine, and triggers automated recoveries using Razorpay Test Mode APIs.
 
 Built for the **Razorpay AI Buildathon** (Track 03 — AI Revenue Recovery, incorporating Track 04 — AI Finance Controller).
 
 ---
 
+## 🛠️ Human-First UX Philosophy
+
+Rather than exposing complex machine learning parameters and multi-agent terminology, CashPulse translates the entire application context into plain-language business answers:
+* **Home Page**: Answers 4 core questions:
+  1. *How much money do I have?* (Money Available)
+  2. *How much money is coming?* (Money Coming In)
+  3. *How much money might I lose?* (Money at Risk)
+  4. *What should I do today?* (Action priorities)
+* **What-If Scenarios**: Slide the late payment percentage controls to dynamically recalculate stressed balances.
+* **Explainable Recommendations**: Click "Why?" on any priority suggestion to see plain-English validations (e.g. customer's historical payment record) alongside layered advanced data logs.
+* **Global Command Bar**: Press `Ctrl + K` from any page to open the business query modal.
+
+---
+
 ## 🚀 Core Capabilities
 
-1. **Revenue at Risk Classification**: Instantly flags failed checkouts, overdue receivables, and anomalies.
-2. **AI Investigator (LLM & ML)**: Decides *why* transactions failed (e.g. temporary method failures vs credit delinquency) and outputs structured reasoning schemas.
-3. **Bounded Autonomy Policy Engine**: Prevents unauthorized interventions by enforcing maximum retries, cooling-off delays, and high-value limits requiring human approval.
-4. **Cash Flow Runway Forecasting**: Runs time-series regressions showing 90-day cash trends with stochastic uncertainty envelopes.
-5. **Ledger Reconciliation Matcher**: Integrates order records with bank statements and payment records to locate cash leaks.
-6. **"What-If" Scenario Simulator**: Injects financial chaos modes (e.g., spike in payment failure rate or receivable crisis) to stress-test collection models.
+1. **Failed Payments & Money Owed**: Instantly flags checkout errors, overdue invoices, and settlement delays.
+2. **Reconciliation Matcher**: Maps transaction pipelines (Customer &rarr; Order &rarr; Gateway &rarr; Settlement Escrow) using the visual **Money Leak Detective**.
+3. **Bounded Autonomy Safety Rules**: Prevents automated actions from exceeding retry limits or thresholds (>= ₹50,000) without explicit confirmation.
+4. **Cash Runway Forecast**: Computes 90-day cash trends with high-probability expected and stressed envelopes.
 
 ---
 
-## 🛠️ Tech Stack
-
-* **Backend**: FastAPI (Python), SQLAlchemy, SQLite/PostgreSQL, scikit-learn, Pydantic settings.
-* **Frontend**: Next.js 15 (React, TypeScript), Tailwind CSS, Recharts for runway analytics.
-* **Integrations**: Official Razorpay SDK for order and payment link generations.
-
----
-
-## 🏃 Local Setup (Quickstart)
+## 🏃 Local Setup
 
 ### 1. Prerequisites
 Ensure you have **Python 3.10+** and **Node.js 18+** installed.
@@ -44,7 +48,7 @@ cd backend
 pip install -r requirements.txt
 python -m uvicorn backend.app.main:app --reload
 ```
-The API server runs on `http://localhost:8000`. You can inspect interactive OpenAPI documents at `http://localhost:8000/docs`.
+The API server runs on `http://localhost:8000`.
 
 ### 4. Start Next.js Frontend
 ```bash
@@ -62,14 +66,3 @@ Run pytest suite to verify logic models, ML forecasting, and policy engine limit
 ```bash
 python -m pytest backend/tests
 ```
-
----
-
-## 🐳 Docker Deployment
-
-To spin up the entire multi-container environment (Next.js + FastAPI):
-```bash
-docker-compose up --build
-```
-* **Frontend**: `http://localhost:3000`
-* **Backend API**: `http://localhost:8000`
