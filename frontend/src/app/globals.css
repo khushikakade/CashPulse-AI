@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+html {
+  font-size: 18px; /* Scales up the entire Tailwind rem scale for high legibility */
+}
+
+:root {
+  --background: #08090a;
+  --foreground: #f4f5f6;
+  --surface: #0e1012;
+  --surface-hover: #16181b;
+  --border: #1e2023;
+  --border-strong: #2d3135;
+  --primary-green: #0e9f6e; /* Financial deep emerald */
+  
+  --positive: #0e9f6e;
+  --warning: #d03801; /* Amber / Burnt orange */
+  --critical: #c81e1e; /* Crimson red */
+  
+  --font-mono: "IBM Plex Mono", "Geist Mono", monospace;
+  --font-sans: "Inter", "Geist", sans-serif;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom Scrollbars for Terminal look */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-green);
+}
