@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import { Loader2, Zap } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface Metrics {
   financial_health_score: number;
@@ -34,10 +35,19 @@ export default function Dashboard() {
   const [actions, setActions] = useState<ActionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const router = useRouter();
 
   const fetchDashboardData = async () => {
     try {
+      const activeRes = await fetch("http://localhost:8000/api/v1/business/active");
+      const activeData = await activeRes.json();
+      if (!activeData.active) {
+        router.push("/onboarding");
+        return;
+      }
+
       const res = await fetch("http://localhost:8000/api/v1/dashboard/metrics");
+
       const data = await res.json();
       setMetrics(data.metrics);
       setActions(data.top_actions);
