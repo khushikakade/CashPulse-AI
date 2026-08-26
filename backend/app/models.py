@@ -19,8 +19,21 @@ class Business(Base):
     __tablename__ = "businesses"
     id = Column(String, primary_key=True, default=generate_uuid)
     name = Column(String, nullable=False)
-    business_type = Column(String, nullable=False)  # D2C Fashion, B2B Manufacturer, etc.
+    business_type = Column(String, nullable=False)  # Manufacturing, Retail, D2C, Services, etc.
     currency = Column(String, default="INR")
+    
+    # Onboarding and personalization fields
+    product_sold = Column(String, nullable=True)
+    payment_method_preference = Column(String, nullable=True)
+    monthly_revenue = Column(Float, default=0.0)
+    customer_count = Column(Integer, default=0)
+    payment_terms = Column(String, default="later") # immediately, later
+    
+    # Autopilot configuration
+    automation_level = Column(String, default="ask_before_action") # just_tell_me, ask_before_action, auto_small_actions
+    auto_limit = Column(Float, default=10000.0)
+    max_retries = Column(Integer, default=2)
+    
     created_at = Column(DateTime, default=datetime.utcnow)
     
     customers = relationship("Customer", back_populates="business")
