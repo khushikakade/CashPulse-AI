@@ -5,7 +5,7 @@ from backend.app.models import RecoveryCase, RecoveryAction, AuditLog, CashEvent
 from backend.app.schemas import (
     DashboardOverview, DashboardMetrics, RecommendedActionItem,
     RecoveryCaseResponse, CashFlowForecastResponse, ReconOverview,
-    ScenarioTrigger, PolicySettingUpdate
+    ScenarioTrigger, PolicySettingUpdate, InvoiceResponse, AuditLogResponse
 )
 from backend.app.services.ml_engine import MLEngine
 from backend.app.services.reconciliation_engine import ReconciliationEngine
