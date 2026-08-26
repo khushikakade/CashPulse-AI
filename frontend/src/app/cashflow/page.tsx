@@ -11,7 +11,7 @@ import {
   Tooltip, 
   ResponsiveContainer 
 } from "recharts";
-import { Loader2, HelpCircle } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface ForecastPoint {
   date: string;
@@ -49,7 +49,7 @@ export default function CashFlowForecasting() {
     return (
       <div className="flex h-screen bg-[#08090a] items-center justify-center text-slate-400 font-mono text-sm">
         <Loader2 className="w-4 h-4 animate-spin text-[#0e9f6e] mr-2" />
-        GENERATING PREDICTIVE FORECAST RUNWAY...
+        SENSING CREDIT CHANNELS...
       </div>
     );
   }
@@ -64,35 +64,34 @@ export default function CashFlowForecasting() {
       
       <main className="flex-1 p-8 overflow-y-auto">
         <header className="mb-10 border-b border-[#1e2023] pb-5">
-          <h1 className="text-2xl font-bold tracking-tight text-white uppercase">Cash Flow Forecasting</h1>
-          <p className="text-slate-400 text-sm mt-1">90-Day cash runway simulation modeled on actual obligations</p>
+          <h1 className="text-2xl font-bold tracking-tight text-white uppercase">Will I have enough money?</h1>
+          <p className="text-slate-400 text-sm mt-1">90-Day cash runway projections based on your payments and bills</p>
         </header>
+
+        <section className="mb-10 max-w-3xl font-mono text-sm bg-[#0e1012] border border-[#1e2023] p-5 text-slate-350">
+          Based on your current customer payments and upcoming expenses, you should have approximately <strong className="text-white">₹{latestExpected.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</strong> available in 30 days.
+        </section>
 
         {/* Forecast analytical header block */}
         <section className="mb-10 max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-[#1e2023] pb-6">
           <div>
-            <span className="text-xs text-slate-500 uppercase tracking-widest block font-mono">Projected cash (30D)</span>
-            <span className="text-2xl font-bold font-mono text-white">₹{latestExpected.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>
+            <span className="text-xs text-slate-500 uppercase tracking-widest block font-mono">Expected Case</span>
+            <span className="text-xl font-bold font-mono text-[#0e9f6e]">₹{latestExpected.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>
           </div>
           <div>
-            <span className="text-xs text-slate-500 uppercase tracking-widest block font-mono">Likely Range Envelope</span>
-            <span className="text-xl font-bold font-mono text-slate-400">
-              ₹{latestLower.toLocaleString("en-IN", { maximumFractionDigits: 0 })} &mdash; ₹{latestUpper.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
-            </span>
+            <span className="text-xs text-slate-500 uppercase tracking-widest block font-mono">Optimistic Case</span>
+            <span className="text-xl font-bold font-mono text-white">₹{latestUpper.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>
           </div>
           <div>
-            <span className="text-xs text-slate-500 uppercase tracking-widest block font-mono">Runway Days & Shortfall</span>
-            <span className="text-xl font-bold font-mono text-white">
-              {runway} Days ({Math.round(prob * 100)}% Stress Risk)
-            </span>
+            <span className="text-xs text-slate-500 uppercase tracking-widest block font-mono">If payments are delayed</span>
+            <span className="text-xl font-bold font-mono text-rose-500">₹{latestLower.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>
           </div>
         </section>
 
         {/* Uncertainty graph */}
         <section className="bg-[#0e1012] border border-[#1e2023] p-6 max-w-4xl mb-10">
-          <h3 className="text-sm font-bold text-white mb-6 uppercase tracking-wider flex items-center gap-2 font-mono">
-            CASH POSITION FORECAST ENVELOPE (90 DAYS)
-            <HelpCircle className="w-4 h-4 text-slate-500" />
+          <h3 className="text-xs font-bold text-white mb-6 uppercase tracking-wider font-mono">
+            WHAT WE EXPECT (90 DAYS)
           </h3>
 
           <div className="h-80 w-full">
@@ -148,24 +147,20 @@ export default function CashFlowForecasting() {
         {/* What changes the forecast list */}
         <section className="max-w-xl">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-widest font-mono block mb-4">
-            WHAT CHANGES THE FORECAST?
+            WHAT COULD CHANGE THIS?
           </span>
           <div className="border border-[#1e2023] bg-[#0e1012] font-mono text-sm p-5 divide-y divide-[#1e2023] space-y-4">
             <div className="flex justify-between items-baseline pt-2">
-              <span className="text-slate-400">Overdue receivables pipeline (high probability)</span>
+              <span className="text-slate-400">Money coming from customers</span>
               <span className="text-[#0e9f6e] font-bold">+₹1,80,000.00</span>
             </div>
             <div className="flex justify-between items-baseline pt-3">
-              <span className="text-slate-400">Supplier and Payroll fixed outflows (upcoming)</span>
+              <span className="text-slate-400">Supplier payments & fixed obligations</span>
               <span className="text-rose-500 font-bold">-₹2,00,000.00</span>
             </div>
             <div className="flex justify-between items-baseline pt-3">
-              <span className="text-slate-400">Product early settlement discounts cap (max 5%)</span>
+              <span className="text-slate-400">Refund claims expected</span>
               <span className="text-rose-500 font-bold">-₹15,000.00</span>
-            </div>
-            <div className="flex justify-between items-baseline pt-3">
-              <span className="text-slate-400">At-risk payment link collection recoveries</span>
-              <span className="text-[#0e9f6e] font-bold">+₹84,200.00</span>
             </div>
           </div>
         </section>
