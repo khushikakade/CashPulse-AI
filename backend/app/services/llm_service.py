@@ -164,5 +164,102 @@ class LLMService:
                 sms_body=f"Friendly reminder: Your invoice of {formatted_amount} is outstanding. Settle here: {{link}}",
                 whatsapp_body=f"Hi {customer_name}, this is a gentle reminder that your invoice of *{formatted_amount}* is pending. Please click here to settle: {{link}}"
             )
+
+    @staticmethod
+    def generate_business_brief(business_name: str, cash: float, overdue: float, at_risk: float, recovered: float) -> str:
+        """
+        Generates a natural language brief summarizing the company's financial status.
+        """
+        if settings.GEMINI_API_KEY and settings.LLM_PROVIDER == "gemini":
+            try:
+                prompt = f"""
+                Create a professional, concise, plain-language daily brief for the business owner of {business_name}.
+                Here are the numbers:
+                - Money Available (Cash Reserves): ₹{cash:,.2f}
+                - Money Customers Owe (Receivables): ₹{overdue:,.2f}
+                - Money At Risk: ₹{at_risk:,.2f}
+                - Money Recovered MTD: ₹{recovered:,.2f}
+                
+                Keep the brief to 2-3 sentences. Speak directly, confidently, and constructively to the business owner.
+                """
+                url = f"https://generativetoolkit.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
+                payload = {
+                    "contents": [{"parts": [{"text": prompt}]}]
+                }
+                with httpx.Client(timeout=10.0) as client:
+                    resp = client.post(url, json=payload)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        text = data["candidates"][0]["content"]["parts"][0]["text"]
+                        return text.strip()
+            except Exception:
+                pass
+                
+        # Fallback deterministic template
+        status = "stable"
+        if at_risk > cash * 0.5:
+            status = "stressed due to high payment exposure"
+        elif recovered > 0:
+            status = "improving thanks to recent recoveries"
+            
+        return (
+            f"Good morning! {business_name}'s runway is currently {status}. "
+            f"You have ₹{cash:,.0f} in available cash reserves, with ₹{overdue:,.0f} outstanding from clients. "
+            f"CashPulse has successfully rescued ₹{recovered:,.0f} this month to keep your business moving."
+        )
+
+    @staticmethod
+    def route_command(query: str) -> str:
+        """
+        Routes natural language command bar queries to appropriate system paths.
+        """
+        if settings.GEMINI_API_KEY and settings.LLM_PROVIDER == "gemini":
+            try:
+                prompt = f"""
+                You are CashPulse AI's Command Center router.
+                Classify the user query: "{query}" into one of the following Next.js pages:
+                - /dashboard (Overview metrics, general stats)
+                - /recovery (Recovery cases ledger, stuck payments, exposure recovery)
+                - /receivables (Money customers owe, upcoming invoice receivables)
+                - /cashflow (Money coming & going forecast, cash runway)
+                - /scenarios (What-if modeling, stress scenarios)
+                - /approvals (Review actions needing human confirmation)
+                - /audit (Activity logs, trace history)
+                - /settings (Safety rules, limit configurations)
+                
+                Respond with ONLY the exact route path string (e.g. /recovery). No markdown, no explanations.
+                """
+                url = f"https://generativetoolkit.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
+                payload = {
+                    "contents": [{"parts": [{"text": prompt}]}]
+                }
+                with httpx.Client(timeout=10.0) as client:
+                    resp = client.post(url, json=payload)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        text = data["candidates"][0]["content"]["parts"][0]["text"]
+                        route = text.strip()
+                        if route.startswith("/"):
+                            return route
+            except Exception:
+                pass
+                
+        # Fallback deterministic regex route mapping
+        q = query.lower()
+        if "recover" in q or "exposure" in q or "stuck" in q or "get money back" in q:
+            return "/recovery"
+        elif "owe" in q or "invoice" in q or "receivable" in q or "bill" in q:
+            return "/receivables"
+        elif "runway" in q or "forecast" in q or "enough money" in q or "cashflow" in q or "cash flow" in q:
+            return "/cashflow"
+        elif "what-if" in q or "scenario" in q or "stress" in q or "simulation" in q:
+            return "/scenarios"
+        elif "approve" in q or "limit" in q or "pending" in q:
+            return "/approvals"
+        elif "log" in q or "audit" in q or "history" in q:
+            return "/audit"
+        elif "rule" in q or "setting" in q or "policy" in q:
+            return "/settings"
+        return "/dashboard"
         
         

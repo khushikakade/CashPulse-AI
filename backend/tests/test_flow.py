@@ -71,3 +71,8 @@ def test_policy_engine_evaluation(db_session):
     result_blocked = PolicyEngine.evaluate_action(db_session, case, "RETRY_PAYMENT", 1000.0)
     assert result_blocked["allowed"] is False
     assert "MAX_PAYMENT_RETRIES limit reached" in result_blocked["blocked_by"]
+
+def test_webhook_signature_verification():
+    from backend.app.services.razorpay_client import razorpay_client
+    # In development/mock mode, signature verification should always pass
+    assert razorpay_client.verify_webhook_signature("{}", "any_signature") is True

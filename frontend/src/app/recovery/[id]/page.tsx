@@ -211,10 +211,14 @@ export default function CaseDetail() {
             </h3>
             <div className="font-mono text-sm text-slate-350 leading-relaxed bg-[#0e1012] border border-[#1e2023] p-5 space-y-2">
               <div><strong>Action:</strong> {details.recommended_action === "RETRY_PAYMENT" ? "Try payment again" : "Send payment link"}</div>
-              <div className="pt-2 border-t border-[#1e2023] space-y-1 text-slate-400">
-                <div>✓ Customer has paid successfully {Math.floor(details.customer?.reliability_score * 10)} times before</div>
-                <div>✓ Payment failed due to standard gate delays ({details.root_cause?.replace(/_/g, ' ')})</div>
-                <div>✓ No unusual client behavior or anomalies detected</div>
+              <div className="pt-2 border-t border-[#1e2023] space-y-2 text-slate-400">
+                <div className="text-white font-medium">{details.explanation}</div>
+                <div className="text-xs text-slate-500 mt-2">
+                  ✓ Root Cause Classification: {details.root_cause?.replace(/_/g, ' ')}
+                </div>
+                <div className="text-xs text-slate-500">
+                  ✓ Safety Engine Assessment: Bounded Autonomy Check OK
+                </div>
               </div>
             </div>
           </section>

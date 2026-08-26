@@ -34,6 +34,29 @@ export default function CommandBar() {
     router.push(href);
   };
 
+  const handleInputKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (!query.trim()) return;
+      
+      try {
+        const res = await fetch("http://localhost:8000/api/v1/command", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query })
+        });
+        const data = await res.json();
+        if (data.route) {
+          setIsOpen(false);
+          setQuery("");
+          router.push(data.route);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -47,6 +70,7 @@ export default function CommandBar() {
             placeholder="Ask CashPulse... (e.g. 'What can I recover?')"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleInputKeyDown}
             className="bg-transparent border-none text-white text-sm focus:outline-none w-full placeholder-slate-650"
             autoFocus
           />

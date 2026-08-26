@@ -1,17 +1,17 @@
 from sqlalchemy.orm import Session
-from backend.app.models import Order, Payment, Invoice
+from backend.app.models import Order, Payment, Invoice, Customer
 from typing import List, Dict, Any
 from datetime import datetime
 
 class ReconciliationEngine:
     @staticmethod
-    def run_reconciliation(db: Session) -> Dict[str, Any]:
+    def run_reconciliation(db: Session, business_id: str) -> Dict[str, Any]:
         """
         Performs three-way match between Orders, Invoices, and Payments.
         """
-        orders = db.query(Order).all()
-        payments = db.query(Payment).all()
-        invoices = db.query(Invoice).all()
+        orders = db.query(Order).join(Customer).filter(Customer.business_id == business_id).all()
+        payments = db.query(Payment).join(Customer).filter(Customer.business_id == business_id).all()
+        invoices = db.query(Invoice).join(Customer).filter(Customer.business_id == business_id).all()
         
         recon_items = []
         total_checked = 0

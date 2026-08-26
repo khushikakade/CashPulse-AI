@@ -17,25 +17,38 @@ def populate_default_policies(db: Session):
             db.add(PolicySetting(**p))
     db.commit()
 
-def generate_synthetic_data(db: Session, scenario: str = "healthy"):
+def generate_synthetic_data(db: Session, scenario: str = "healthy", business_id: str = None):
     # Clear existing data first to prevent duplicates in demo mode
-    db.query(CashEvent).delete()
-    db.query(Invoice).delete()
-    db.query(Payment).delete()
-    db.query(Order).delete()
-    db.query(Customer).delete()
-    db.query(Business).delete()
-    db.commit()
-    
-    # 1. Create Business
-    business = Business(
-        name="Aarav HomeTech",
-        business_type="Small Electronics Retailer",
-        currency="INR"
-    )
-    db.add(business)
-    db.commit()
-    db.refresh(business)
+    if business_id:
+        business = db.query(Business).filter(Business.id == business_id).first()
+        if not business:
+            return
+        cust_ids = [c.id for c in db.query(Customer).filter(Customer.business_id == business_id).all()]
+        db.query(CashEvent).filter(CashEvent.business_id == business_id).delete()
+        if cust_ids:
+            db.query(Payment).filter(Payment.customer_id.in_(cust_ids)).delete()
+            db.query(Order).filter(Order.customer_id.in_(cust_ids)).delete()
+            db.query(Invoice).filter(Invoice.customer_id.in_(cust_ids)).delete()
+            db.query(Customer).filter(Customer.business_id == business_id).delete()
+        db.commit()
+    else:
+        db.query(CashEvent).delete()
+        db.query(Invoice).delete()
+        db.query(Payment).delete()
+        db.query(Order).delete()
+        db.query(Customer).delete()
+        db.query(Business).delete()
+        db.commit()
+        
+        # 1. Create Business
+        business = Business(
+            name="Aarav HomeTech",
+            business_type="Small Electronics Retailer",
+            currency="INR"
+        )
+        db.add(business)
+        db.commit()
+        db.refresh(business)
     
     # 2. Populate policies
     populate_default_policies(db)

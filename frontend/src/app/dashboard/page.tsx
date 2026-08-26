@@ -33,6 +33,7 @@ interface ActionItem {
 export default function Dashboard() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [actions, setActions] = useState<ActionItem[]>([]);
+  const [brief, setBrief] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const router = useRouter();
@@ -47,10 +48,13 @@ export default function Dashboard() {
       }
 
       const res = await fetch("http://localhost:8000/api/v1/dashboard/metrics");
-
       const data = await res.json();
       setMetrics(data.metrics);
       setActions(data.top_actions);
+
+      const briefRes = await fetch("http://localhost:8000/api/v1/dashboard/brief");
+      const briefData = await briefRes.json();
+      setBrief(briefData.brief);
     } catch (e) {
       console.error("Failed to load dashboard metrics", e);
     } finally {
@@ -60,6 +64,27 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDashboardData();
+
+    const sse = new EventSource("http://localhost:8000/api/v1/events/stream");
+    
+    const handleRecovered = (e: MessageEvent) => {
+      const data = JSON.parse(e.data);
+      alert(`Payment of ₹${data.amount.toLocaleString()} Recovered Successfully! 🎉`);
+      fetchDashboardData();
+    };
+
+    const handleFailed = (e: MessageEvent) => {
+      const data = JSON.parse(e.data);
+      alert(`Unusual Event: Payment of ₹${data.amount.toLocaleString()} failed due to: ${data.error}.`);
+      fetchDashboardData();
+    };
+
+    sse.addEventListener("payment.recovered", handleRecovered as any);
+    sse.addEventListener("payment.failed", handleFailed as any);
+
+    return () => {
+      sse.close();
+    };
   }, []);
 
   const handleExecuteAction = async (caseId: string, actionId: string) => {
@@ -132,8 +157,8 @@ export default function Dashboard() {
                 <span className="text-xl font-bold font-mono text-[#0e9f6e]">₹{metrics.recovered_this_month.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>
               </div>
             </div>
-            <div className="text-sm text-slate-300 font-medium pt-3 border-t border-[#1e2023]">
-              Your cash position is healthier than last week. CashPulse successfully recovered <span className="text-[#0e9f6e] font-bold">₹{metrics.recovered_this_month.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>.
+            <div className="text-sm text-slate-300 font-medium pt-3 border-t border-[#1e2023] leading-relaxed">
+              {brief || "Compiling credit indices..."}
             </div>
           </section>
         )}

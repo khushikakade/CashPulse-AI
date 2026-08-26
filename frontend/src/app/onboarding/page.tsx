@@ -28,6 +28,7 @@ export default function Onboarding() {
       });
       const data = await res.json();
       if (data.status === "success") {
+        document.cookie = `business_id=${data.business_id}; path=/; max-age=31536000; SameSite=Lax`;
         router.push("/dashboard");
       }
     } catch (e) {

@@ -4,6 +4,7 @@ from backend.app.database import get_db
 from backend.app.models import WebhookEvent, Payment, Invoice, RecoveryCase, RecoveryAction, AuditLog
 from backend.app.services.razorpay_client import razorpay_client
 from datetime import datetime
+from backend.app.services.event_publisher import EventPublisher
 
 router = APIRouter()
 
@@ -94,6 +95,7 @@ async def handle_razorpay_webhook(
                             payload={"recovered_amount": amount, "event_id": event_id}
                         ))
                         db.commit()
+                        EventPublisher.publish("payment.recovered", {"amount": amount, "ref": case.id})
                         
         elif event_type == "payment.failed":
             payment_data = payload["payload"]["payment"]["entity"]
@@ -103,13 +105,18 @@ async def handle_razorpay_webhook(
             email = payment_data.get("email", "payment_client@example.com")
             
             # Find or create customer
-            cust = db.query(Customer).filter(Customer.email == email).first()
+            from backend.app.models import Business
+            active_b = db.query(Business).order_by(Business.created_at.desc()).first()
+            active_b_id = active_b.id if active_b else None
+            
+            cust = db.query(Customer).filter(Customer.email == email, Customer.business_id == active_b_id).first()
             if not cust:
                 cust = Customer(
                     name=email.split("@")[0].capitalize(),
                     email=email,
                     reliability_score=0.8,
-                    payment_delay_days=1
+                    payment_delay_days=1,
+                    business_id=active_b_id
                 )
                 db.add(cust)
                 db.commit()
@@ -131,6 +138,7 @@ async def handle_razorpay_webhook(
             # Run scan to create case
             from backend.app.services.agent_orchestrator import AgentOrchestrator
             AgentOrchestrator.scan_and_detect_risks(db)
+            EventPublisher.publish("payment.failed", {"amount": amount, "error": error_desc})
             
         elif event_type == "payment_link.paid":
             pl_data = payload["payload"]["payment_link"]["entity"]
@@ -162,6 +170,7 @@ async def handle_razorpay_webhook(
                         payload={"recovered_amount": amount, "event_id": event_id}
                     ))
                     db.commit()
+                    EventPublisher.publish("payment.recovered", {"amount": amount, "ref": case.id})
                     
         db_event.processed = True
         db.commit()

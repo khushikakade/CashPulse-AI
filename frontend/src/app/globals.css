@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 html {
@@ -17,8 +18,8 @@ html {
   --warning: #d03801; /* Amber / Burnt orange */
   --critical: #c81e1e; /* Crimson red */
   
-  --font-mono: "IBM Plex Mono", "Geist Mono", monospace;
-  --font-sans: "Inter", "Geist", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+  --font-sans: "Plus Jakarta Sans", sans-serif;
 }
 
 body {
@@ -43,4 +44,24 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--primary-green);
+}
+
+/* Custom Fade-in and hover micro-animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Premium Card hover gradient borders */
+.premium-border-hover {
+  position: relative;
+  transition: all 0.3s ease;
+}
+.premium-border-hover:hover {
+  border-color: var(--primary-green);
+  box-shadow: 0 0 15px rgba(14, 159, 110, 0.15);
 }

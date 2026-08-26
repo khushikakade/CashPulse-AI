@@ -1,42 +1,60 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [activeBusiness, setActiveBusiness] = useState<{ name: string; id: string } | null>(null);
+
+  useEffect(() => {
+    const fetchActive = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/api/v1/business/active");
+        const data = await res.json();
+        if (data.active) {
+          setActiveBusiness({ name: data.name, id: data.id });
+          document.cookie = `business_id=${data.id}; path=/; max-age=31536000; SameSite=Lax`;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchActive();
+  }, []);
 
   const groups = [
     {
       label: "Home",
-      items: [{ name: "Overview Screen", href: "/dashboard" }]
+      items: [{ name: "Cash Control Center", href: "/dashboard" }]
     },
     {
       label: "My Money",
       items: [
-        { name: "Payments Ledger", href: "/reconciliation" },
-        { name: "Money Customers Owe", href: "/receivables" }
+        { name: "Reconciliation Matcher", href: "/reconciliation" },
+        { name: "Outstanding Receivables", href: "/receivables" }
       ]
     },
     {
       label: "Get Money Back",
       items: [
-        { name: "Recover My Money", href: "/recovery" }
+        { name: "Automated Recovery Pipeline", href: "/recovery" }
       ]
     },
     {
       label: "Plan Ahead",
       items: [
-        { name: "Money Coming & Going", href: "/cashflow" },
-        { name: "What-If Scenarios", href: "/scenarios" }
+        { name: "Runway Forecasting", href: "/cashflow" },
+        { name: "Liquidity Stress Testing", href: "/scenarios" }
       ]
     },
     {
       label: "Automatic Actions",
       items: [
-        { name: "Things to Approve", href: "/approvals" },
-        { name: "Activity Logs", href: "/audit" },
-        { name: "Safety Rules", href: "/settings" }
+        { name: "Operations Approval Queue", href: "/approvals" },
+        { name: "Audit Trail & Event Logs", href: "/audit" },
+        { name: "Autonomy Policies", href: "/settings" }
       ]
     }
   ];
@@ -86,8 +104,8 @@ export default function Sidebar() {
       </nav>
       
       {/* Footer Info */}
-      <div className="p-4 border-t border-[#1e2023] font-mono text-xs text-slate-550 flex flex-col gap-1.5 leading-relaxed">
-        <div>ENTITY: AARAV HOMETECH</div>
+      <div className="p-4 border-t border-[#1e2023] font-mono text-xs text-slate-500 flex flex-col gap-1.5 leading-relaxed">
+        <div>ENTITY: {activeBusiness ? activeBusiness.name.toUpperCase() : "LOADING..."}</div>
         <div>GATEWAY: rzp_test_mode</div>
         <div>STATUS: ONLINE</div>
       </div>

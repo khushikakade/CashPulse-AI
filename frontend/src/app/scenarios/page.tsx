@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import { Loader2 } from "lucide-react";
 
@@ -8,6 +8,25 @@ export default function Scenarios() {
   const [loading, setLoading] = useState(false);
   const [activeScenario, setActiveScenario] = useState<string>("healthy");
   const [latePayPercent, setLatePayPercent] = useState<number>(20);
+  const [cashAvailable, setCashAvailable] = useState<number>(500000);
+  const [outstandingReceivables, setOutstandingReceivables] = useState<number>(0);
+
+  const fetchMetrics = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/api/v1/dashboard/metrics");
+      const data = await res.json();
+      if (data.metrics) {
+        setCashAvailable(data.metrics.cash_available);
+        setOutstandingReceivables(data.metrics.outstanding_receivables);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    fetchMetrics();
+  }, [activeScenario]);
 
   const triggerScenario = async (name: string) => {
     setLoading(true);
@@ -58,9 +77,8 @@ export default function Scenarios() {
   ];
 
   // Dynamic calculations based on late payments slider
-  const baseCaseCash = 780000;
-  const impactVal = latePayPercent * 1700;
-  const scenarioCash = baseCaseCash - impactVal;
+  const stressImpact = outstandingReceivables * (latePayPercent / 100);
+  const scenarioCash = Math.max(0, cashAvailable - stressImpact);
 
   return (
     <div className="flex bg-[#08090a] text-[#f4f5f6] min-h-screen font-sans">
@@ -101,7 +119,7 @@ export default function Scenarios() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-[#1e2023] text-sm font-mono">
               <div>
                 <span className="text-xs text-slate-500 block uppercase mb-1">Base Case Expected Cash</span>
-                <span className="text-lg font-bold text-white">₹{baseCaseCash.toLocaleString("en-IN")}</span>
+                <span className="text-lg font-bold text-white">₹{cashAvailable.toLocaleString("en-IN")}</span>
               </div>
               <div>
                 <span className="text-xs text-slate-500 block uppercase mb-1">Scenario Projected Cash</span>
@@ -109,7 +127,7 @@ export default function Scenarios() {
               </div>
               <div>
                 <span className="text-xs text-slate-500 block uppercase mb-1">Difference / Impact</span>
-                <span className="text-lg font-bold text-rose-500">-₹{impactVal.toLocaleString("en-IN")}</span>
+                <span className="text-lg font-bold text-rose-500">-₹{stressImpact.toLocaleString("en-IN")}</span>
               </div>
             </div>
 
