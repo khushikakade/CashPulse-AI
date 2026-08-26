@@ -95,6 +95,43 @@ async def handle_razorpay_webhook(
                         ))
                         db.commit()
                         
+        elif event_type == "payment.failed":
+            payment_data = payload["payload"]["payment"]["entity"]
+            rzp_payment_id = payment_data["id"]
+            amount = payment_data["amount"] / 100.0
+            error_desc = payment_data.get("error_description", "Timeout on bank payment server")
+            email = payment_data.get("email", "payment_client@example.com")
+            
+            # Find or create customer
+            cust = db.query(Customer).filter(Customer.email == email).first()
+            if not cust:
+                cust = Customer(
+                    name=email.split("@")[0].capitalize(),
+                    email=email,
+                    reliability_score=0.8,
+                    payment_delay_days=1
+                )
+                db.add(cust)
+                db.commit()
+                db.refresh(cust)
+                
+            # Create failed payment
+            p = db.query(Payment).filter(Payment.rzp_payment_id == rzp_payment_id).first()
+            if not p:
+                p = Payment(
+                    rzp_payment_id=rzp_payment_id,
+                    amount=amount,
+                    status="failed",
+                    failure_reason=error_desc,
+                    customer_id=cust.id
+                )
+                db.add(p)
+                db.commit()
+                
+            # Run scan to create case
+            from backend.app.services.agent_orchestrator import AgentOrchestrator
+            AgentOrchestrator.scan_and_detect_risks(db)
+            
         elif event_type == "payment_link.paid":
             pl_data = payload["payload"]["payment_link"]["entity"]
             pl_id = pl_data["id"]
