@@ -177,9 +177,11 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard"
-              className="text-xs font-semibold text-slate-300 hover:text-white px-3 py-2 rounded-lg transition-colors hidden sm:block"
+              className="text-xs font-semibold text-white bg-[#13161F] hover:bg-[#1A1F2B] border border-white/10 hover:border-[#00F59B]/40 px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-xs"
             >
-              {activeBusiness ? `Open ${activeBusiness.name}` : "Workspace Login"}
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00F59B] animate-pulse" />
+              <span>{activeBusiness ? `Open ${activeBusiness.name}` : "Open द्वीSakhi"}</span>
+              <ArrowRight className="w-3 h-3 text-slate-400" />
             </Link>
 
             <Link
@@ -249,10 +251,10 @@ export default function Home() {
                 {/* Dual CTA Buttons */}
                 <div className="flex flex-wrap items-center gap-4 pt-2">
                   <Link
-                    href="/onboarding"
-                    className="px-7 py-4 rounded-xl bg-gradient-to-r from-[#00F59B] to-[#05DF72] text-[#08090C] font-bold text-sm hover:shadow-xl hover:shadow-[#00F59B]/25 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
+                    href="/dashboard"
+                    className="px-7 py-4 rounded-xl bg-gradient-to-r from-[#00F59B] to-[#05DF72] text-[#08090C] font-bold text-sm hover:shadow-xl hover:shadow-[#00F59B]/25 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 shadow-lg shadow-[#00F59B]/20"
                   >
-                    Start Free in 60 Seconds
+                    {activeBusiness ? `Open ${activeBusiness.name} Workspace` : "Open द्वीSakhi Workspace"}
                     <ArrowRight className="w-4 h-4" />
                   </Link>
 

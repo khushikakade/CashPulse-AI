@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { showToast } from "../components/Toast";
-import { Sparkles, Building2, TrendingUp, ShieldCheck, ArrowRight, ArrowLeft, RefreshCw } from "lucide-react";
+import { Sparkles, Building2, TrendingUp, ShieldCheck, ArrowRight, ArrowLeft, RefreshCw, ArrowUpRight } from "lucide-react";
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
@@ -54,19 +55,19 @@ export default function Onboarding() {
       <div className="max-w-lg w-full warm-card p-8 sm:p-10 space-y-8 relative z-10 shadow-2xl">
         {/* Brand & Progress Header */}
         <div className="flex items-center justify-between border-b border-[#E8E5DF] pb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#EAF3ED] border border-[#C8E1D1] flex items-center justify-center text-[#225C3E]">
-              <Sparkles className="w-4 h-4" />
+          <Link href="/" title="Back to CashPulse.com" className="flex items-center gap-3 group">
+            <div className="w-9 h-9 rounded-xl bg-[#EAF3ED] border border-[#C8E1D1] flex items-center justify-center text-[#225C3E] group-hover:scale-105 transition-transform">
+              <span className="font-display font-black text-sm text-[#225C3E]">CP</span>
             </div>
             <div>
-              <h1 className="font-display text-base font-bold text-[#1A1A1A]">
-                CashPulse Setup
+              <h1 className="font-display text-base font-bold text-[#1A1A1A] group-hover:text-[#225C3E] transition-colors flex items-center gap-1">
+                CashPulse <ArrowUpRight className="w-3 h-3 text-[#7A7770]" />
               </h1>
-              <span className="text-[11px] text-[#7A7770]">
-                Guided Co-pilot Onboarding
+              <span className="text-[11px] text-[#7A7770] block">
+                ← Back to website
               </span>
             </div>
-          </div>
+          </Link>
 
           <div className="flex items-center gap-1.5">
             {[1, 2, 3].map((s) => (

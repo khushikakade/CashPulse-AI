@@ -15,7 +15,8 @@ import {
   ShieldCheck,
   Building2,
   Sparkles,
-  Command
+  Command,
+  ArrowUpRight
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -77,20 +78,30 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 bg-[#161514] border-r border-[#292622] text-[#B5B0A6] flex flex-col h-screen sticky top-0 font-sans select-none shrink-0 transition-all z-20">
-      {/* Brand Header */}
-      <div className="px-5 py-6 border-b border-[#292622]">
-        <Link href="/dashboard" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 rounded-xl bg-[#2A2723] border border-[#3E3A34] flex items-center justify-center text-[#BBDCC7] shadow-sm transition-transform group-hover:scale-105">
-            <Sparkles className="w-4 h-4 text-[#C8E1D1]" />
+      {/* Brand Header: Links back to Landing Page (/) */}
+      <div className="px-4 py-5 border-b border-[#292622]">
+        <Link
+          href="/"
+          title="Back to CashPulse.com (Marketing Site)"
+          className="flex items-center justify-between p-2 rounded-2xl hover:bg-[#1E1C1A] border border-transparent hover:border-[#3E3A34] transition-all group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#2A2723] border border-[#3E3A34] flex items-center justify-center text-[#BBDCC7] shadow-sm transition-transform group-hover:scale-105">
+              <span className="font-display font-black text-sm text-[#C8E1D1] tracking-tight">CP</span>
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <h1 className="font-display text-base font-bold text-[#FAF9F6] tracking-tight leading-tight">
+                  CashPulse
+                </h1>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3E8B62] animate-pulse-subtle" />
+              </div>
+              <span className="text-[10px] text-[#8C877E] font-medium flex items-center gap-1 group-hover:text-[#BBDCC7] transition-colors">
+                ← Back to website
+              </span>
+            </div>
           </div>
-          <div>
-            <h1 className="font-display text-lg font-bold text-[#FAF9F6] tracking-tight leading-tight">
-              CashPulse
-            </h1>
-            <span className="text-[11px] text-[#8C877E] font-medium block">
-              Smart Cash Assistant
-            </span>
-          </div>
+          <ArrowUpRight className="w-3.5 h-3.5 text-[#706B62] group-hover:text-[#FAF9F6] transition-colors shrink-0" />
         </Link>
       </div>
 
@@ -154,7 +165,14 @@ export default function Sidebar() {
           </div>
 
           <div className="pt-2 border-t border-[#2E2B26] flex items-center justify-between text-[11px] text-[#8C877E]">
-            <span>Ask anything</span>
+            <Link
+              href="/"
+              title="Exit to Marketing Site"
+              className="hover:text-[#FAF9F6] flex items-center gap-1 transition-colors text-[10px] font-medium"
+            >
+              <span>CashPulse.com</span>
+              <ArrowUpRight className="w-3 h-3" />
+            </Link>
             <kbd className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-sans font-medium text-[#B5B0A6] bg-[#2A2723] border border-[#3E3A34] rounded-md">
               <Command className="w-2.5 h-2.5" /> K
             </kbd>

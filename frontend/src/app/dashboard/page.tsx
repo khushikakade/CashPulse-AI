@@ -61,6 +61,8 @@ export default function Dashboard() {
         if (!activeData.active) {
           router.push("/onboarding");
           return;
+        } else if (activeData.id) {
+          document.cookie = `business_id=${activeData.id}; path=/; max-age=31536000; SameSite=Lax`;
         }
       }
 

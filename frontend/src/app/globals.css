@@ -13,6 +13,17 @@
   --color-espresso-700: #292622;
   --color-espresso-600: #3D3934;
 
+  /* ZONE 1: MARKETING SHOWCASE (DARK FINTECH) TOKENS */
+  --color-obsidian-950: #08090C;
+  --color-obsidian-900: #0A0D12;
+  --color-obsidian-850: #0E1015;
+  --color-obsidian-800: #12151D;
+  --color-obsidian-700: #171B24;
+  --color-obsidian-border: rgba(255, 255, 255, 0.08);
+  --color-emerald-neon: #00F59B;
+  --color-emerald-glow: #05DF72;
+  --color-emerald-deep: #10B981;
+
   /* Warm Neutral Base */
   --color-warm-cream: #FAF9F6;
   --color-warm-cream-alt: #F4F1EA;
