@@ -1,84 +1,188 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
-import { Loader2 } from "lucide-react";
+import { showToast } from "../components/Toast";
+import { ShieldCheck, Save, RefreshCw, AlertCircle, CheckCircle2, Lock } from "lucide-react";
 
-interface Policy {
-  key: string;
-  value: string;
-  description: string;
-}
-
-export default function SettingsPage() {
-  const [policies, setPolicies] = useState<Policy[]>([
-    { key: "MAX_PAYMENT_RETRIES", value: "2", description: "Maximum automatic retries before stopping and escalating" },
-    { key: "MAX_AUTOMATED_REMINDERS", value: "2", description: "Maximum number of reminders sent to a single customer" },
-    { key: "MIN_HOURS_BETWEEN_REMINDERS", value: "24", description: "Minimum wait time before sending another notification" },
-    { key: "MAX_AUTOMATED_DISCOUNT", value: "5", description: "Maximum automated early settlement discount percentage" },
-    { key: "HIGH_VALUE_THRESHOLD", value: "50000", description: "Threshold above which human approval is mandatory for any intervention" }
-  ]);
+export default function Settings() {
   const [loading, setLoading] = useState(false);
+  const [saved, setSaved] = useState(false);
 
-  const handleUpdatePolicy = (key: string, value: string) => {
-    setPolicies(prev => prev.map(p => p.key === key ? { ...p, value } : p));
-  };
+  const [maxRetries, setMaxRetries] = useState(2);
+  const [maxReminders, setMaxReminders] = useState(2);
+  const [minHours, setMinHours] = useState(24);
+  const [maxDiscount, setMaxDiscount] = useState(5);
+  const [threshold, setThreshold] = useState(50000);
 
-  const handleSaveSettings = async () => {
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      alert("Operational parameters updated.");
+      setSaved(true);
+      showToast(
+        "Rules Updated Successfully",
+        "CashPulse will now strictly follow your new boundaries.",
+        "success"
+      );
+      setTimeout(() => setSaved(false), 3000);
     }, 600);
   };
 
   return (
-    <div className="flex bg-[#08090a] text-[#f4f5f6] min-h-screen font-sans">
+    <div className="flex bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
       <Sidebar />
-      
-      <main className="flex-1 p-8 overflow-y-auto">
-        <header className="mb-10 border-b border-[#1e2023] pb-5">
-          <h1 className="text-xl font-bold tracking-tight text-white uppercase">Operational Safety Policies</h1>
-          <p className="text-slate-400 text-sm mt-1">Configure limits, triggers, and parameters governing automated workflows</p>
+
+      <main className="flex-1 p-6 md:p-10 overflow-y-auto max-w-4xl mx-auto space-y-10">
+        {/* Header */}
+        <header className="pb-4 border-b border-[#E5E1D8]">
+          <span className="badge-sage text-xs mb-1.5">
+            <ShieldCheck className="w-3.5 h-3.5" /> Safety Policies
+          </span>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#141312] tracking-tight mt-1">
+            What CashPulse Is Allowed To Do
+          </h1>
+          <p className="text-xs text-[#54504A] mt-1 font-normal">
+            Set clear boundaries. Decide which actions CashPulse can take automatically, and when it must stop and ask you.
+          </p>
         </header>
 
-        <section className="max-w-2xl space-y-6">
-          <div className="bg-[#0e1012] border border-[#1e2023] p-5 text-sm font-mono text-slate-350 leading-relaxed">
-            SYSTEM CONSTRAINT: AUTONOMOUS INTERVENTIONS RUN ONLY INSIDE THESE GATED PARAMETERS. EXCEEDING VALUES AUTOMATICALLY SUSPEND AUTO-EXECUTION AND REQUIRE VERIFICATION.
+        {/* Form Card */}
+        <form onSubmit={handleSave} className="warm-card p-6 md:p-8 space-y-6">
+          <div className="border-b border-[#E5E1D8] pb-4">
+            <h2 className="font-display text-base font-bold text-[#141312]">
+              Automatic Action Limits
+            </h2>
+            <p className="text-xs text-[#54504A]">
+              Fine-tune how assertive CashPulse should be when collecting overdue money
+            </p>
           </div>
 
-          <div className="border border-[#1e2023] bg-[#0e1012] divide-y divide-[#1e2023]">
-            {policies.map((p) => (
-              <div key={p.key} className="p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-sm">
-                <div className="flex-1">
-                  <span className="text-xs text-[#0e9f6e] font-bold block uppercase mb-1.5 font-mono">{p.key}</span>
-                  <p className="text-slate-350 text-xs leading-normal">{p.description}</p>
-                </div>
-                
-                <input 
-                  type="text" 
-                  value={p.value}
-                  onChange={(e) => handleUpdatePolicy(p.key, e.target.value)}
-                  className="bg-black border border-[#1e2023] px-3.5 py-2.5 text-sm font-bold font-mono text-white w-full md:w-28 focus:border-[#0e9f6e] focus:outline-none"
-                />
+          <div className="space-y-5">
+            {/* Setting 1: Retries */}
+            <div className="p-4 rounded-2xl bg-[#FAF9F6] border border-[#E5E1D8] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-0.5">
+                <label className="font-bold text-xs text-[#141312]">
+                  Maximum Automatic Retries
+                </label>
+                <p className="text-xs text-[#54504A]">
+                  How many times can CashPulse retry a failed checkout before stopping?
+                </p>
               </div>
-            ))}
+              <input
+                type="number"
+                min="1"
+                max="5"
+                value={maxRetries}
+                onChange={(e) => setMaxRetries(Number(e.target.value))}
+                className="w-24 bg-white border border-[#E5E1D8] rounded-xl px-3 py-1.5 text-xs text-[#141312] font-semibold text-center focus:outline-none focus:border-[#141312]"
+              />
+            </div>
+
+            {/* Setting 2: Reminders */}
+            <div className="p-4 rounded-2xl bg-[#FAF9F6] border border-[#E5E1D8] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-0.5">
+                <label className="font-bold text-xs text-[#141312]">
+                  Maximum Friendly Reminders
+                </label>
+                <p className="text-xs text-[#54504A]">
+                  How many payment links can we send to a customer before escalating?
+                </p>
+              </div>
+              <input
+                type="number"
+                min="1"
+                max="5"
+                value={maxReminders}
+                onChange={(e) => setMaxReminders(Number(e.target.value))}
+                className="w-24 bg-white border border-[#E5E1D8] rounded-xl px-3 py-1.5 text-xs text-[#141312] font-semibold text-center focus:outline-none focus:border-[#141312]"
+              />
+            </div>
+
+            {/* Setting 3: Wait Time */}
+            <div className="p-4 rounded-2xl bg-[#FAF9F6] border border-[#E5E1D8] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-0.5">
+                <label className="font-bold text-xs text-[#141312]">
+                  Wait Time Between Reminders (Hours)
+                </label>
+                <p className="text-xs text-[#54504A]">
+                  Minimum hours to wait before messaging the customer again to protect relationships.
+                </p>
+              </div>
+              <input
+                type="number"
+                min="6"
+                max="72"
+                step="6"
+                value={minHours}
+                onChange={(e) => setMinHours(Number(e.target.value))}
+                className="w-24 bg-white border border-[#E5E1D8] rounded-xl px-3 py-1.5 text-xs text-[#141312] font-semibold text-center focus:outline-none focus:border-[#141312]"
+              />
+            </div>
+
+            {/* Setting 4: Discount */}
+            <div className="p-4 rounded-2xl bg-[#FAF9F6] border border-[#E5E1D8] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-0.5">
+                <label className="font-bold text-xs text-[#141312]">
+                  Maximum Concession for Fast Payment (%)
+                </label>
+                <p className="text-xs text-[#54504A]">
+                  Maximum discount percentage CashPulse can offer for immediate payment without asking you.
+                </p>
+              </div>
+              <input
+                type="number"
+                min="0"
+                max="15"
+                value={maxDiscount}
+                onChange={(e) => setMaxDiscount(Number(e.target.value))}
+                className="w-24 bg-white border border-[#E5E1D8] rounded-xl px-3 py-1.5 text-xs text-[#141312] font-semibold text-center focus:outline-none focus:border-[#141312]"
+              />
+            </div>
+
+            {/* Setting 5: Approval Threshold */}
+            <div className="p-4 rounded-2xl bg-[#FAF9F6] border border-[#E5E1D8] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-0.5">
+                <label className="font-bold text-xs text-[#8E3015] flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5" /> Require Your OK for Big Amounts (₹)
+                </label>
+                <p className="text-xs text-[#54504A]">
+                  Any invoice or checkout above this rupee amount will always pause in "Waiting For Approval".
+                </p>
+              </div>
+              <input
+                type="number"
+                min="10000"
+                max="500000"
+                step="5000"
+                value={threshold}
+                onChange={(e) => setThreshold(Number(e.target.value))}
+                className="w-28 bg-white border border-[#E5E1D8] rounded-xl px-3 py-1.5 text-xs text-[#141312] font-semibold text-center focus:outline-none focus:border-[#141312]"
+              />
+            </div>
           </div>
 
-          <div className="flex justify-end pt-2">
+          <div className="pt-4 border-t border-[#E5E1D8] flex items-center justify-end">
             <button
-              onClick={handleSaveSettings}
+              type="submit"
               disabled={loading}
-              className="bg-[#0e9f6e] hover:bg-emerald-400 text-black font-mono text-xs font-extrabold px-6 py-3 transition-colors uppercase tracking-wider"
+              className="btn-primary text-xs px-6 py-2.5 shadow-sm"
             >
               {loading ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                  Saving...
+                </>
               ) : (
-                "Commit Changes"
+                <>
+                  <Save className="w-3.5 h-3.5 mr-1.5" />
+                  Save My Rules
+                </>
               )}
             </button>
           </div>
-        </section>
+        </form>
       </main>
     </div>
   );

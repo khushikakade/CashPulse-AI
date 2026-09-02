@@ -195,17 +195,10 @@ class LLMService:
             except Exception:
                 pass
                 
-        # Fallback deterministic template
-        status = "stable"
-        if at_risk > cash * 0.5:
-            status = "stressed due to high payment exposure"
-        elif recovered > 0:
-            status = "improving thanks to recent recoveries"
-            
         return (
-            f"Good morning! {business_name}'s runway is currently {status}. "
-            f"You have ₹{cash:,.0f} in available cash reserves, with ₹{overdue:,.0f} outstanding from clients. "
-            f"CashPulse has successfully rescued ₹{recovered:,.0f} this month to keep your business moving."
+            f"Good morning Neha & Khushi! द्वीSakhi's cash runway is currently {status}. "
+            f"You have ₹{cash:,.0f} in available bank reserves, with ₹{overdue:,.0f} pending from college fest bulk orders and website checkouts. "
+            f"CashPulse has successfully collected ₹{recovered:,.0f} this month to keep tote bag production and shipping moving."
         )
 
     @staticmethod

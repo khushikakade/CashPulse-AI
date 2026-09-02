@@ -1,14 +1,15 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState, useEffect, Suspense } from "react";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { useState, Suspense } from "react";
+import { showToast } from "../../components/Toast";
+import { Sparkles, CheckCircle2, ShieldCheck, ArrowLeft, RefreshCw } from "lucide-react";
 
 function SimulateContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const linkId = searchParams.get("link_id") || "plink_test";
-  const amount = Number(searchParams.get("amount") || 0);
+  const amount = Number(searchParams.get("amount") || 15000);
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -40,70 +41,99 @@ function SimulateContent() {
       });
       await res.json();
       setSuccess(true);
+      showToast(
+        "Payment Authorized",
+        `Simulated settlement of ₹${amount.toLocaleString("en-IN")} completed.`,
+        "celebration"
+      );
     } catch (e) {
       console.error(e);
-      alert("Failed to simulate webhook callback.");
+      showToast("Simulation Error", "Failed to dispatch test webhook event.", "error");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md w-full border border-[#1e2023] bg-[#0e1012] p-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-[#1e2023] pb-4">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-[#002f34] flex items-center justify-center font-mono text-[10px] text-[#0e9f6e] font-extrabold">
+    <div className="max-w-md w-full warm-card p-8 sm:p-10 space-y-6 relative shadow-2xl">
+      {/* Sandbox Header */}
+      <div className="flex items-center justify-between border-b border-[#E8E5DF] pb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-[#EAF3ED] text-[#225C3E] flex items-center justify-center font-bold text-xs">
             RZP
           </div>
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono">
-            Razorpay Sandbox
-          </span>
+          <div>
+            <span className="font-semibold text-xs text-[#1A1A1A] block">
+              Razorpay Checkout Sandbox
+            </span>
+            <span className="text-[10px] text-[#7A7770]">Customer Portal</span>
+          </div>
         </div>
-        <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 font-mono uppercase font-bold">
+
+        <span className="badge-honey text-[10px]">
           Test Mode
         </span>
       </div>
 
       {success ? (
-        <div className="text-center py-6 space-y-4">
-          <CheckCircle2 className="w-12 h-12 text-[#0e9f6e] mx-auto animate-bounce" />
-          <h2 className="text-lg font-bold text-white font-mono uppercase">Payment Authorized</h2>
-          <p className="text-xs text-slate-450 leading-relaxed font-mono">
-            Simulated settlement webhook sent. Original payment reference has been marked as recovered in CashPulse dashboard.
+        <div className="text-center py-6 space-y-4 animate-fade-slide">
+          <div className="w-14 h-14 bg-[#EAF3ED] text-[#225C3E] rounded-full flex items-center justify-center mx-auto shadow-sm">
+            <CheckCircle2 className="w-8 h-8" />
+          </div>
+
+          <h2 className="font-display text-2xl font-bold text-[#1A1A1A]">
+            Payment Authorized!
+          </h2>
+
+          <p className="text-xs text-[#5C5954] leading-relaxed max-w-xs mx-auto">
+            Simulated settlement webhook sent. The original overdue invoice has been marked as recovered in your CashPulse dashboard.
           </p>
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="w-full bg-[#0e9f6e] hover:bg-[#10b981] text-black font-mono text-xs font-bold py-3 uppercase tracking-wider transition-colors"
-          >
-            Return to Dashboard
-          </button>
+
+          <div className="pt-2">
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="btn-primary w-full text-xs py-3"
+            >
+              Return to Dashboard
+            </button>
+          </div>
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="space-y-1">
-            <span className="text-xs text-slate-500 font-mono uppercase">Payment Link ID</span>
-            <div className="text-sm font-bold text-white font-mono">{linkId}</div>
-          </div>
+          <div className="p-4 rounded-2xl bg-[#FAF9F6] border border-[#E8E5DF] space-y-3">
+            <div>
+              <span className="text-[10px] text-[#7A7770] uppercase font-medium block">
+                Payment Link Reference
+              </span>
+              <div className="font-mono text-xs font-semibold text-[#1A1A1A] mt-0.5">
+                {linkId}
+              </div>
+            </div>
 
-          <div className="space-y-1">
-            <span className="text-xs text-slate-500 font-mono uppercase">Amount Owed</span>
-            <div className="text-2xl font-bold text-white font-mono">
-              ₹{amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+            <div className="pt-2 border-t border-[#E8E5DF]">
+              <span className="text-[10px] text-[#7A7770] uppercase font-medium block">
+                Amount Due
+              </span>
+              <div className="font-display text-2xl font-bold text-[#225C3E] mt-0.5">
+                ₹{amount.toLocaleString("en-IN", { minimumFractionDigits: 0 })}
+              </div>
             </div>
           </div>
 
-          <div className="p-4 bg-black border border-[#1e2023] text-xs font-mono text-slate-400 leading-relaxed">
-            This is a simulated Razorpay payment gateway client. Press the button below to execute an immediate successful checkout simulation.
-          </div>
+          <p className="text-xs text-[#5C5954] leading-relaxed">
+            This simulates the customer paying via UPI, NetBanking, or card. Clicking below triggers the verified payment webhook.
+          </p>
 
           <button
             onClick={handleSimulatePayment}
             disabled={loading}
-            className="w-full bg-[#0e9f6e] hover:bg-[#10b981] text-black font-mono text-xs font-extrabold py-3.5 transition-colors uppercase tracking-wider flex items-center justify-center gap-2"
+            className="btn-primary w-full text-xs py-3.5"
           >
             {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <>
+                <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                Simulating Settlement...
+              </>
             ) : (
               "Simulate Successful Settlement"
             )}
@@ -116,12 +146,14 @@ function SimulateContent() {
 
 export default function SimulatePayment() {
   return (
-    <div className="bg-[#08090a] text-[#f4f5f6] min-h-screen flex flex-col items-center justify-center font-sans px-4">
-      <Suspense fallback={
-        <div className="text-slate-400 font-mono text-xs">
-          Loading Sandbox Portal...
-        </div>
-      }>
+    <div className="bg-[#FAF9F6] text-[#1A1A1A] min-h-screen flex flex-col items-center justify-center font-sans px-4 py-12">
+      <Suspense
+        fallback={
+          <div className="text-xs text-[#7A7770]">
+            Loading Checkout Sandbox...
+          </div>
+        }
+      >
         <SimulateContent />
       </Suspense>
     </div>

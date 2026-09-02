@@ -1,32 +1,43 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Plus_Jakarta_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import CommandBar from "./components/CommandBar";
+import ToastContainer from "./components/Toast";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const fraunces = Fraunces({
+  variable: "--font-display",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-sans",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  weight: ["400", "500", "600"],
+  variable: "--font-mono",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "CashPulse AI — Autonomous FinOps OS",
-  description: "Protect revenue, rescue cash, and keep MSMEs moving.",
+  title: "CashPulse AI — Autonomous Cash Flow & AR Recovery",
+  description: "A warm, intelligent financial co-pilot protecting working capital and rescuing overdue receivables for MSMEs.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${plusJakartaSans.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#08090a]">
+      <body className="min-h-full flex flex-col bg-[#FAF9F6] text-[#1A1A1A] font-sans selection:bg-[#EAF3ED] selection:text-[#225C3E]">
         {children}
         <CommandBar />
+        <ToastContainer />
       </body>
     </html>
   );

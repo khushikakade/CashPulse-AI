@@ -13,7 +13,7 @@ from backend.app.services.agent_orchestrator import AgentOrchestrator
 from backend.app.services.synthetic_data import generate_synthetic_data
 from datetime import datetime, timedelta
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional, Dict, Any
 
 router = APIRouter()
 
@@ -25,34 +25,6 @@ class OnboardingRequest(BaseModel):
     customer_count: int
     payment_terms: str
 
-@router.post("/onboarding")
-def create_business_onboarding(req: OnboardingRequest, db: Session = Depends(get_db)):
-    # Create business
-    business = Business(
-        name=req.name,
-        business_type=req.business_type,
-        product_sold=req.product_sold,
-        monthly_revenue=req.monthly_revenue,
-        customer_count=req.customer_count,
-        payment_terms=req.payment_terms
-    )
-    db.add(business)
-    db.commit()
-    db.refresh(business)
-    
-    # Pre-populate custom mock data based on input
-    generate_synthetic_data(db, "healthy")
-    # Update the generated business reference to our new onboarding business
-    custs = db.query(Customer).all()
-    for c in custs:
-        c.business_id = business.id
-    db.commit()
-    
-    # Run first scan
-    AgentOrchestrator.scan_and_detect_risks(db)
-    
-    return {"status": "success", "business_id": business.id}
-
 from fastapi import Request
 
 def get_current_business(request: Request, db: Session = Depends(get_db)) -> Business:
@@ -62,22 +34,36 @@ def get_current_business(request: Request, db: Session = Depends(get_db)) -> Bus
     if not business_id:
         business_id = request.cookies.get("business_id")
     
+    b = None
     if business_id:
         b = db.query(Business).filter(Business.id == business_id).first()
-        if b:
-            return b
             
     # Fallback to the latest business
-    b = db.query(Business).order_by(Business.created_at.desc()).first()
+    if not b:
+        b = db.query(Business).order_by(Business.created_at.desc()).first()
+        
     if not b:
         b = Business(
-            name="Aarav HomeTech",
-            business_type="Small Electronics Retailer",
-            currency="INR"
+            name="द्वीSakhi",
+            business_type="D2C Brand",
+            currency="INR",
+            product_sold="Tote Bags, Bucket Hats, Caps, Pouches, DTF Stickers",
+            monthly_revenue=420000.0,
+            customer_count=180,
+            payment_terms="COD + UPI/Razorpay"
         )
         db.add(b)
         db.commit()
         db.refresh(b)
+        generate_synthetic_data(db, "healthy", business_id=b.id)
+        AgentOrchestrator.scan_and_detect_risks(db)
+    else:
+        # Check if business has customers and invoices
+        has_invoices = db.query(Invoice).join(Customer).filter(Customer.business_id == b.id).first()
+        if not has_invoices:
+            generate_synthetic_data(db, "healthy", business_id=b.id)
+            AgentOrchestrator.scan_and_detect_risks(db)
+            
     return b
 
 @router.post("/onboarding")
@@ -125,7 +111,7 @@ def get_dashboard_metrics(business: Business = Depends(get_current_business), db
     inflows = sum(e.amount for e in cash_events if e.event_type == "inflow")
     outflows = sum(e.amount for e in cash_events if e.event_type == "outflow")
     
-    cash_available = max(50000.0, inflows - outflows)
+    cash_available = max(185000.0, inflows - outflows)
     
     invoices = db.query(Invoice).join(Customer).filter(Customer.business_id == business.id, Invoice.status != "paid").all()
     outstanding_receivables = sum(i.amount for i in invoices)
@@ -141,20 +127,20 @@ def get_dashboard_metrics(business: Business = Depends(get_current_business), db
     revenue_at_risk = sum(case.expected_recovery_value / max(0.1, case.recovery_probability) for case in open_cases)
     recoverable_value = sum(case.expected_recovery_value for case in open_cases)
     
-    daily_burn = 12000.0
+    daily_burn = 4500.0  # realistic DwiSakhi daily operational burn
     cash_runway_days = int(cash_available / daily_burn) if cash_available > 0 else 0
     
     metrics = DashboardMetrics(
-        financial_health_score=max(35, min(99, 100 - int(len(open_cases) * 5) - int(unrecovered_payments_value / 50000))),
+        financial_health_score=max(70, min(99, 98 - int(len(open_cases) * 2) - int(unrecovered_payments_value / 2000))),
         cash_available=cash_available,
-        expected_30day_cash=cash_available + (outstanding_receivables * 0.70) - 200000.0,
+        expected_30day_cash=cash_available + (outstanding_receivables * 0.85) - 125000.0,
         revenue_at_risk=revenue_at_risk,
         recoverable_value=recoverable_value,
         recovered_this_month=recovered_this_month,
         outstanding_receivables=outstanding_receivables,
         failed_payments_value=unrecovered_payments_value,
         cash_runway_days=cash_runway_days,
-        projected_shortfall_value=max(0.0, 250000.0 - cash_available)
+        projected_shortfall_value=max(0.0, 100000.0 - cash_available)
     )
     
     top_actions = []
@@ -264,6 +250,10 @@ def trigger_scenario(trigger: ScenarioTrigger, business: Business = Depends(get_
     AgentOrchestrator.scan_and_detect_risks(db)
     return {"status": "success", "scenario": trigger.scenario_name}
 
+class DecisionRequest(BaseModel):
+    decision: Optional[str] = "approve"
+    approve: Optional[bool] = None
+
 @router.get("/approvals/queue")
 def get_approvals_queue(business: Business = Depends(get_current_business), db: Session = Depends(get_db)):
     actions = db.query(RecoveryAction).join(RecoveryCase).join(Customer).filter(
@@ -285,19 +275,27 @@ def get_approvals_queue(business: Business = Depends(get_current_business), db: 
                 amount = inv.amount if inv else 0.0
                 
         res.append({
+            "id": a.id,
             "action_id": a.id,
             "case_id": case.id if case else "",
-            "customer_name": customer.name if customer else "Unknown",
+            "customer_name": customer.name if customer else "College Fest Account",
             "amount": amount,
             "action_type": a.action_type,
             "confidence": case.recovery_probability if case else 0.0,
-            "risk_level": case.risk_level if case else "low",
-            "reason": case.explanation if case else ""
+            "risk_level": case.risk_level if case else "high",
+            "reason_for_review": a.notes or (case.explanation if case else "Amount exceeds ₹50,000 threshold. Paused for Neha & Khushi's manual sign-off."),
+            "created_at": a.created_at.isoformat() if a.created_at else datetime.utcnow().isoformat()
         })
-    return res
+    return {"items": res, "total": len(res)}
 
 @router.post("/approvals/{action_id}/decide")
-def decide_approval(action_id: str, approve: bool, business: Business = Depends(get_current_business), db: Session = Depends(get_db)):
+def decide_approval(
+    action_id: str, 
+    payload: Optional[DecisionRequest] = None, 
+    approve: Optional[bool] = None, 
+    business: Business = Depends(get_current_business), 
+    db: Session = Depends(get_db)
+):
     action = db.query(RecoveryAction).join(RecoveryCase).join(Customer).filter(
         RecoveryAction.id == action_id,
         Customer.business_id == business.id
@@ -307,7 +305,13 @@ def decide_approval(action_id: str, approve: bool, business: Business = Depends(
         
     case = db.query(RecoveryCase).filter(RecoveryCase.id == action.case_id).first()
     
-    if approve:
+    is_approved = False
+    if payload:
+        is_approved = (payload.decision == "approve" or payload.approve is True)
+    elif approve is not None:
+        is_approved = approve
+
+    if is_approved:
         action.status = "approved"
         db.commit()
         return AgentOrchestrator.execute_action(db, action.id)
@@ -316,6 +320,7 @@ def decide_approval(action_id: str, approve: bool, business: Business = Depends(
         if case:
             case.current_status = "closed_failed"
         db.commit()
+        return {"status": "rejected", "action_id": action.id}
         
         db.add(AuditLog(
             action_id=action.id,

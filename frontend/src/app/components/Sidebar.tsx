@@ -3,6 +3,20 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  Receipt,
+  GitCompare,
+  RotateCcw,
+  TrendingUp,
+  Sliders,
+  CheckSquare,
+  History,
+  ShieldCheck,
+  Building2,
+  Sparkles,
+  Command
+} from "lucide-react";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -26,75 +40,93 @@ export default function Sidebar() {
 
   const groups = [
     {
-      label: "Home",
-      items: [{ name: "Cash Control Center", href: "/dashboard" }]
-    },
-    {
-      label: "My Money",
+      label: "TODAY",
       items: [
-        { name: "Reconciliation Matcher", href: "/reconciliation" },
-        { name: "Outstanding Receivables", href: "/receivables" }
+        { name: "Today's Cash", href: "/dashboard", icon: LayoutDashboard }
       ]
     },
     {
-      label: "Get Money Back",
+      label: "MONEY OWED",
       items: [
-        { name: "Automated Recovery Pipeline", href: "/recovery" }
+        { name: "Who Owes You Money", href: "/receivables", icon: Receipt },
+        { name: "Match My Payments", href: "/reconciliation", icon: GitCompare }
       ]
     },
     {
-      label: "Plan Ahead",
+      label: "COLLECT MONEY",
       items: [
-        { name: "Runway Forecasting", href: "/cashflow" },
-        { name: "Liquidity Stress Testing", href: "/scenarios" }
+        { name: "Get Stuck Money Back", href: "/recovery", icon: RotateCcw }
       ]
     },
     {
-      label: "Automatic Actions",
+      label: "LOOK AHEAD",
       items: [
-        { name: "Operations Approval Queue", href: "/approvals" },
-        { name: "Audit Trail & Event Logs", href: "/audit" },
-        { name: "Autonomy Policies", href: "/settings" }
+        { name: "How Long Will My Money Last?", href: "/cashflow", icon: TrendingUp },
+        { name: "What If Money Gets Tight?", href: "/scenarios", icon: Sliders }
+      ]
+    },
+    {
+      label: "SAFETY & PERMISSIONS",
+      items: [
+        { name: "Waiting For Your Approval", href: "/approvals", icon: CheckSquare },
+        { name: "History of Everything Done", href: "/audit", icon: History },
+        { name: "What CashPulse Can Do", href: "/settings", icon: ShieldCheck }
       ]
     }
   ];
 
   return (
-    <aside className="w-60 bg-[#08090a] border-r border-[#1e2023] text-slate-400 flex flex-col h-screen sticky top-0 font-sans select-none shrink-0">
-      {/* Brand */}
-      <div className="px-5 py-6 border-b border-[#1e2023]">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 bg-[#0e9f6e] flex items-center justify-center font-mono text-xs text-black font-extrabold rounded-none">
-            CP
+    <aside className="w-64 bg-[#161514] border-r border-[#292622] text-[#B5B0A6] flex flex-col h-screen sticky top-0 font-sans select-none shrink-0 transition-all z-20">
+      {/* Brand Header */}
+      <div className="px-5 py-6 border-b border-[#292622]">
+        <Link href="/dashboard" className="flex items-center gap-3 group">
+          <div className="w-9 h-9 rounded-xl bg-[#2A2723] border border-[#3E3A34] flex items-center justify-center text-[#BBDCC7] shadow-sm transition-transform group-hover:scale-105">
+            <Sparkles className="w-4 h-4 text-[#C8E1D1]" />
           </div>
           <div>
-            <h1 className="text-sm font-bold text-[#f4f5f6] tracking-wider uppercase">CashPulse</h1>
-            <span className="text-[10px] text-[#0e9f6e] uppercase tracking-widest font-mono font-bold block">FinOps OS</span>
+            <h1 className="font-display text-lg font-bold text-[#FAF9F6] tracking-tight leading-tight">
+              CashPulse
+            </h1>
+            <span className="text-[11px] text-[#8C877E] font-medium block">
+              Smart Cash Assistant
+            </span>
           </div>
-        </div>
+        </Link>
       </div>
-      
-      {/* Navigation */}
-      <nav className="flex-1 p-4 overflow-y-auto space-y-6">
+
+      {/* Navigation Links */}
+      <nav className="flex-1 p-3.5 overflow-y-auto space-y-6">
         {groups.map((group) => (
-          <div key={group.label} className="space-y-1.5">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block px-2 mb-2">
+          <div key={group.label} className="space-y-1">
+            <span className="text-[10px] font-bold text-[#706B62] px-3 mb-1.5 block tracking-wider uppercase">
               {group.label}
             </span>
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {group.items.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                const Icon = item.icon;
+                const isActive =
+                  pathname === item.href ||
+                  (item.href !== "/dashboard" && pathname.startsWith(item.href + "/"));
+
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`block px-2.5 py-2 text-sm font-medium rounded transition-colors ${
-                      isActive 
-                        ? "text-[#0e9f6e] bg-[#0e9f6e]/5 font-semibold" 
-                        : "hover:text-[#f4f5f6] hover:bg-slate-900/30"
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                      isActive
+                        ? "bg-[#2A2723] text-[#FAF9F6] font-semibold shadow-xs border border-[#3E3A34]"
+                        : "text-[#B5B0A6] hover:text-[#FAF9F6] hover:bg-[#1E1C1A]"
                     }`}
                   >
-                    {item.name}
+                    <Icon
+                      className={`w-4 h-4 shrink-0 transition-colors ${
+                        isActive ? "text-[#C8E1D1]" : "text-[#706B62]"
+                      }`}
+                    />
+                    <span className="truncate">{item.name}</span>
+                    {isActive && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#BBDCC7] ml-auto shrink-0 animate-pulse-subtle" />
+                    )}
                   </Link>
                 );
               })}
@@ -102,12 +134,32 @@ export default function Sidebar() {
           </div>
         ))}
       </nav>
-      
-      {/* Footer Info */}
-      <div className="p-4 border-t border-[#1e2023] font-mono text-xs text-slate-500 flex flex-col gap-1.5 leading-relaxed">
-        <div>ENTITY: {activeBusiness ? activeBusiness.name.toUpperCase() : "LOADING..."}</div>
-        <div>GATEWAY: rzp_test_mode</div>
-        <div>STATUS: ONLINE</div>
+
+      {/* Active Shop Card / Footer */}
+      <div className="p-3.5 border-t border-[#292622]">
+        <div className="bg-[#1E1C1A] border border-[#2E2B26] rounded-2xl p-3 shadow-xs space-y-2.5">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-[#2A2723] flex items-center justify-center text-[#B5B0A6] shrink-0">
+              <Building2 className="w-3.5 h-3.5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-semibold text-[#FAF9F6] truncate">
+                {activeBusiness ? activeBusiness.name : "द्वीSakhi"}
+              </div>
+              <div className="text-[10px] text-[#8C877E] flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3E8B62] animate-pulse-subtle" />
+                <span>Neha & Khushi • D2C Merch</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-[#2E2B26] flex items-center justify-between text-[11px] text-[#8C877E]">
+            <span>Ask anything</span>
+            <kbd className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-sans font-medium text-[#B5B0A6] bg-[#2A2723] border border-[#3E3A34] rounded-md">
+              <Command className="w-2.5 h-2.5" /> K
+            </kbd>
+          </div>
+        </div>
       </div>
     </aside>
   );

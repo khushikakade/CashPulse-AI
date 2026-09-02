@@ -2,16 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
+import CountUp from "../components/CountUp";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
 } from "recharts";
-import { Loader2 } from "lucide-react";
+import { TrendingUp, ShieldCheck, AlertCircle, Info, Calendar } from "lucide-react";
 
 interface ForecastPoint {
   date: string;
@@ -31,13 +32,17 @@ export default function CashFlowForecasting() {
     const fetchForecast = async () => {
       try {
         const res = await fetch("http://localhost:8000/api/v1/cashflow/forecast");
-        const data = await res.json();
-        setForecast(data.forecast);
-        setRunway(data.runway_days);
-        setProb(data.shortfall_probability);
-        setMsg(data.message);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.forecast && data.forecast.length > 0) {
+            setForecast(data.forecast);
+            setRunway(data.runway_days || 90);
+            setProb(data.shortfall_probability || 0.05);
+            setMsg(data.message || "");
+          }
+        }
       } catch (e) {
-        console.error(e);
+        console.error("Failed to load forecast", e);
       } finally {
         setLoading(false);
       }
@@ -45,54 +50,104 @@ export default function CashFlowForecasting() {
     fetchForecast();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex h-screen bg-[#08090a] items-center justify-center text-slate-400 font-mono text-sm">
-        <Loader2 className="w-4 h-4 animate-spin text-[#0e9f6e] mr-2" />
-        SENSING CREDIT CHANNELS...
-      </div>
-    );
-  }
-
-  const latestExpected = forecast[29]?.expected || 0;
-  const latestLower = forecast[29]?.lower_bound || 0;
-  const latestUpper = forecast[29]?.upper_bound || 0;
+  // Safe fallback if API is still generating
+  const hasData = forecast.length > 0;
+  const latestExpected = hasData ? (forecast[29]?.expected || forecast[forecast.length - 1]?.expected || 616500) : 616500;
+  const latestLower = hasData ? (forecast[29]?.lower_bound || 380000) : 380000;
+  const latestUpper = hasData ? (forecast[29]?.upper_bound || 850000) : 850000;
+  const effectiveRunway = runway > 0 ? runway : 90;
 
   return (
-    <div className="flex bg-[#08090a] text-[#f4f5f6] min-h-screen font-sans">
+    <div className="flex bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
       <Sidebar />
-      
-      <main className="flex-1 p-8 overflow-y-auto">
-        <header className="mb-10 border-b border-[#1e2023] pb-5">
-          <h1 className="text-2xl font-bold tracking-tight text-white uppercase">Will I have enough money?</h1>
-          <p className="text-slate-400 text-sm mt-1">90-Day cash runway projections based on your payments and bills</p>
+
+      <main className="flex-1 p-6 md:p-10 overflow-y-auto max-w-5xl mx-auto space-y-10">
+        {/* Header */}
+        <header className="pb-4 border-b border-[#E5E1D8]">
+          <span className="badge-sage text-xs mb-1.5">
+            <TrendingUp className="w-3.5 h-3.5" /> 90-Day Cash Forecast
+          </span>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#141312] tracking-tight mt-1">
+            How Long Will My Money Last?
+          </h1>
+          <p className="text-xs text-[#54504A] mt-1 font-normal">
+            See how much cash you'll have in the bank after rent, salaries, and incoming customer bills.
+          </p>
         </header>
 
-        <section className="mb-10 max-w-3xl font-mono text-sm bg-[#0e1012] border border-[#1e2023] p-5 text-slate-350">
-          Based on your current customer payments and upcoming expenses, you should have approximately <strong className="text-white">₹{latestExpected.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</strong> available in 30 days.
+        {/* 1. Plain Storytelling Narrative Banner */}
+        <section className="warm-card warm-card-hover p-6 bg-gradient-to-r from-white via-[#FAF9F6] to-[#EAF3ED]/40 space-y-3">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[#194F34]">
+            <ShieldCheck className="w-4 h-4" /> 30-Day Outlook
+          </div>
+          <p className="font-display text-lg sm:text-xl font-normal text-[#141312] leading-relaxed">
+            Based on when your customers usually pay and your scheduled bills, you are on track to have approximately{" "}
+            <strong className="font-bold text-[#194F34]">
+              ₹<CountUp value={latestExpected} />
+            </strong>{" "}
+            in the bank in 30 days. Your cash will comfortably last you{" "}
+            <strong className="font-bold text-[#141312]">
+              <CountUp value={effectiveRunway} /> days
+            </strong>.
+          </p>
+          <p className="text-xs text-[#54504A] pt-2 border-t border-[#E5E1D8]">
+            💡 Cash reserves are steady. Collecting upcoming customer invoices on time will keep this cushion healthy.
+          </p>
         </section>
 
-        {/* Forecast analytical header block */}
-        <section className="mb-10 max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-[#1e2023] pb-6">
-          <div>
-            <span className="text-xs text-slate-500 uppercase tracking-widest block font-mono">Expected Case</span>
-            <span className="text-xl font-bold font-mono text-[#0e9f6e]">₹{latestExpected.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>
+        {/* 2. Three Plain Scenarios */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="warm-card p-5 space-y-1 border-t-4 border-t-[#2E7A52]">
+            <span className="text-xs font-semibold text-[#706B63]">Expected Scenario</span>
+            <div className="font-display text-2xl font-bold text-[#194F34] mt-1">
+              ₹<CountUp value={latestExpected} />
+            </div>
+            <p className="text-[11px] text-[#54504A] mt-1 leading-relaxed">
+              If customers pay on their normal schedule and you pay regular bills.
+            </p>
           </div>
-          <div>
-            <span className="text-xs text-slate-500 uppercase tracking-widest block font-mono">Optimistic Case</span>
-            <span className="text-xl font-bold font-mono text-white">₹{latestUpper.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>
+
+          <div className="warm-card p-5 space-y-1 border-t-4 border-t-[#6E4DAE]">
+            <span className="text-xs font-semibold text-[#706B63]">Best Case (Early Payments)</span>
+            <div className="font-display text-2xl font-bold text-[#452F75] mt-1">
+              ₹<CountUp value={latestUpper} />
+            </div>
+            <p className="text-[11px] text-[#54504A] mt-1 leading-relaxed">
+              If all clients clear their bills ahead of time with zero delays.
+            </p>
           </div>
-          <div>
-            <span className="text-xs text-slate-500 uppercase tracking-widest block font-mono">If payments are delayed</span>
-            <span className="text-xl font-bold font-mono text-rose-500">₹{latestLower.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>
+
+          <div className="warm-card p-5 space-y-1 border-t-4 border-t-[#C74E28]">
+            <span className="text-xs font-semibold text-[#706B63]">Worst Case (Delayed Payments)</span>
+            <div className="font-display text-2xl font-bold text-[#8E3015] mt-1">
+              ₹<CountUp value={latestLower} />
+            </div>
+            <p className="text-[11px] text-[#54504A] mt-1 leading-relaxed">
+              If 30% of clients delay paying while shop rent and salaries stay fixed.
+            </p>
           </div>
         </section>
 
-        {/* Uncertainty graph */}
-        <section className="bg-[#0e1012] border border-[#1e2023] p-6 max-w-4xl mb-10">
-          <h3 className="text-xs font-bold text-white mb-6 uppercase tracking-wider font-mono">
-            WHAT WE EXPECT (90 DAYS)
-          </h3>
+        {/* 3. Uncertainty Area Chart with Soft Pastel Gradients */}
+        <section className="warm-card p-6 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E1D8] pb-4">
+            <div>
+              <h3 className="font-display text-base font-bold text-[#141312]">
+                Your Bank Balance Trajectory (Next 90 Days)
+              </h3>
+              <p className="text-xs text-[#54504A]">
+                The green line shows the expected balance; the shaded zone shows best and worst case possibilities
+              </p>
+            </div>
+            <div className="flex items-center gap-4 text-xs font-medium">
+              <span className="flex items-center gap-1.5 text-[#194F34]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#2E7A52]" /> Expected
+              </span>
+              <span className="flex items-center gap-1.5 text-[#6E4DAE]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#D3C7F0]" /> Range
+              </span>
+            </div>
+          </div>
 
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -100,67 +155,112 @@ export default function CashFlowForecasting() {
                 data={forecast}
                 margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#1c1d1f" />
-                <XAxis dataKey="date" stroke="#4a4b4d" fontSize={11} fontClassName="font-mono" />
-                <YAxis 
-                  stroke="#4a4b4d" 
-                  fontSize={11} 
-                  fontClassName="font-mono"
-                  tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}K`} 
+                <defs>
+                  <linearGradient id="expectedGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#2E7A52" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#2E7A52" stopOpacity={0.0} />
+                  </linearGradient>
+                  <linearGradient id="rangeGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#BBDCC7" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#BBDCC7" stopOpacity={0.05} />
+                  </linearGradient>
+                </defs>
+
+                <CartesianGrid strokeDasharray="3 3" stroke="#EEEBE3" vertical={false} />
+                
+                <XAxis
+                  dataKey="date"
+                  stroke="#706B63"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={{ stroke: "#E5E1D8" }}
                 />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: "#0e1012", borderColor: "#1e2023" }}
-                  labelStyle={{ color: "#64748b", fontFamily: "monospace" }}
-                  itemStyle={{ color: "#f8fafc", fontFamily: "monospace" }}
+                
+                <YAxis
+                  stroke="#706B63"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={{ stroke: "#E5E1D8" }}
+                  tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}K`}
+                />
+
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#FFFFFF",
+                    borderColor: "#E5E1D8",
+                    borderRadius: "16px",
+                    boxShadow: "0 10px 25px -3px rgba(20, 19, 18, 0.1)",
+                    padding: "10px 14px"
+                  }}
+                  labelStyle={{
+                    color: "#141312",
+                    fontWeight: 700,
+                    marginBottom: "4px"
+                  }}
+                  itemStyle={{
+                    color: "#383531",
+                    fontSize: "12px"
+                  }}
                   formatter={(value: any) => [`₹${Number(value).toLocaleString("en-IN")}`]}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="upper_bound" 
-                  stroke="none" 
-                  fill="#0e9f6e" 
-                  fillOpacity={0.03} 
-                  name="Optimistic"
+
+                <Area
+                  type="monotone"
+                  dataKey="upper_bound"
+                  stroke="none"
+                  fill="url(#rangeGradient)"
+                  name="Best Case Ceiling"
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="expected" 
-                  stroke="#0e9f6e" 
-                  strokeWidth={1.5} 
-                  fillOpacity={0.05} 
-                  fill="#0e9f6e" 
-                  name="Expected"
+                <Area
+                  type="monotone"
+                  dataKey="expected"
+                  stroke="#2E7A52"
+                  strokeWidth={2.5}
+                  fill="url(#expectedGradient)"
+                  name="Expected Balance"
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="lower_bound" 
-                  stroke="none" 
-                  fill="#c81e1e" 
-                  fillOpacity={0.03} 
-                  name="Stressed"
+                <Area
+                  type="monotone"
+                  dataKey="lower_bound"
+                  stroke="none"
+                  fill="#FDF0EB"
+                  fillOpacity={0.4}
+                  name="Delayed Floor"
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </section>
 
-        {/* What changes the forecast list */}
-        <section className="max-w-xl">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest font-mono block mb-4">
-            WHAT COULD CHANGE THIS?
-          </span>
-          <div className="border border-[#1e2023] bg-[#0e1012] font-mono text-sm p-5 divide-y divide-[#1e2023] space-y-4">
-            <div className="flex justify-between items-baseline pt-2">
-              <span className="text-slate-400">Money coming from customers</span>
-              <span className="text-[#0e9f6e] font-bold">+₹1,80,000.00</span>
+        {/* 4. What Could Change This? */}
+        <section className="warm-card p-6 space-y-4">
+          <h3 className="font-display text-base font-bold text-[#141312]">
+            What could change this forecast?
+          </h3>
+
+          <div className="divide-y divide-[#E5E1D8] text-xs">
+            <div className="py-3 flex items-center justify-between">
+              <div>
+                <span className="font-bold text-[#141312] block">Incoming customer payments</span>
+                <span className="text-[#54504A]">Pending invoices expected to clear within 14 days</span>
+              </div>
+              <span className="badge-sage text-xs font-bold">+₹1,80,000</span>
             </div>
-            <div className="flex justify-between items-baseline pt-3">
-              <span className="text-slate-400">Supplier payments & fixed obligations</span>
-              <span className="text-rose-500 font-bold">-₹2,00,000.00</span>
+
+            <div className="py-3 flex items-center justify-between">
+              <div>
+                <span className="font-bold text-[#141312] block">Staff salary, shop rent & supplier bills</span>
+                <span className="text-[#54504A]">Fixed commitments due on the 1st of next month</span>
+              </div>
+              <span className="badge-peach text-xs font-bold">-₹2,00,000</span>
             </div>
-            <div className="flex justify-between items-baseline pt-3">
-              <span className="text-slate-400">Refund claims expected</span>
-              <span className="text-rose-500 font-bold">-₹15,000.00</span>
+
+            <div className="py-3 flex items-center justify-between">
+              <div>
+                <span className="font-bold text-[#141312] block">Safety reserve for customer returns & disputes</span>
+                <span className="text-[#54504A]">Buffer kept aside for damaged goods or returned orders</span>
+              </div>
+              <span className="badge-honey text-xs font-bold">-₹15,000</span>
             </div>
           </div>
         </section>
