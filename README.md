@@ -4,6 +4,7 @@
 [![Next.js 16](https://img.shields.io/badge/Next.js-16.3.3-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![Python 3.11](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python)](https://python.org/)
+[![Razorpay](https://img.shields.io/badge/Razorpay-Payment%20Links%20%26%20Webhooks-0C2340?style=for-the-badge&logo=razorpay&logoColor=blue)](https://razorpay.com)
 [![Tailwind CSS v4](https://img.shields.io/badge/Tailwind-v4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 [![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions)](.github/workflows/deploy.yml)
@@ -16,7 +17,7 @@
 **CashPulse AI** is an enterprise-grade autonomous financial telemetry and revenue recovery operating system built for modern MSMEs, D2C brands, and B2B enterprises. It continuously ingests banking streams, payment gateway webhooks, and enterprise billing ledgers to:
 
 1. **Eliminate Cash Leaks**: Detect dropped checkout transactions and reconcile cross-channel gateway settlements in real time.
-2. **Automate Receivables (AR) Recovery**: Trigger policy-bounded, multi-channel recovery workflows (dynamic UPI links, automated email advisories, pre-filled WhatsApp communications) with zero customer friction.
+2. **Automate Receivables (AR) Recovery**: Trigger policy-bounded, multi-channel recovery workflows (dynamic Razorpay UPI links, automated email advisories, pre-filled WhatsApp communications) with zero customer friction.
 3. **Forecast Liquidity Runway**: Execute 90-day time-series regression and stochastic simulations to detect upcoming working capital shortfalls before payroll or vendor commitments are impacted.
 4. **Execute 3-Way Bank Statement Reconciliation**: Audit bank statement CSV exports (HDFC, ICICI, SBI, Axis) against gateway settlements and internal invoices, surfacing hidden Merchant Discount Rate (MDR) deductions and missing UTR deposits.
 
@@ -27,7 +28,7 @@
 ```mermaid
 flowchart TD
     subgraph INGESTION["1. Telemetry & Ingestion Layer"]
-        PG_WH["Gateway Webhooks\n(Razorpay / Cashfree HMAC-SHA256)"]
+        PG_WH["Gateway Webhooks\n(Razorpay HMAC-SHA256 & Cashfree)"]
         BANK_CSV["Bank Statement Parser\n(Multi-Bank CSV, UTR & MDR Detection)"]
         ERP["Internal Ledgers\n(Invoices, Orders, AR Cohorts)"]
     end
@@ -42,7 +43,7 @@ flowchart TD
     subgraph AUTOMATION["3. Autonomous Recovery & Outreach"]
         SCHEDULER["Background Scanner\n(APScheduler Telemetry Daemon)"]
         ORCHESTRATOR["Agent Orchestrator\n(State Machine & Dynamic Retry Backoff)"]
-        OUTREACH["Multi-Channel Dispatcher\n(WhatsApp Intent Links, SMTP Notices, Instant UPI)"]
+        OUTREACH["Multi-Channel Dispatcher\n(Razorpay Payment Links, WhatsApp Intent, SMTP)"]
     end
 
     subgraph INTERFACES["4. Presentation & Interaction Layer"]
@@ -55,6 +56,46 @@ flowchart TD
     ENGINE --> AUTOMATION
     AUTOMATION --> INTERFACES
 ```
+
+---
+
+## ⚡ Payment Gateway & Razorpay Ecosystem Integration
+
+While CashPulse AI functions as a complete liquidity intelligence and AR operating system, it is deeply integrated into the **Razorpay developer ecosystem** across the entire transaction lifecycle:
+
+```
+[Dropped Checkout / Overdue AR]
+          │
+          ▼
+[Razorpay Payment Links API]  ──(Dynamic UPI Link + Auto Reminders)──►  [Customer WhatsApp / Email]
+          │                                                                       │
+          ▼                                                                       ▼
+[HMAC-SHA256 Webhook Pipeline] ◄──(payment.captured / payment.failed)─── [Customer Pays]
+          │
+          ▼
+[3-Way Bank Reconciler] ◄──(Matches Bank UTR + Audits MDR Fee Deductions)
+```
+
+### Key Integration Touchpoints:
+
+* **Razorpay Payment Links API (`/v1/payment_links`)**:
+  * Programmatically generates dynamic, single-use payment links with configurable expiry, automatic SMS/email reminder schedules, and branded callback redirects.
+  * Links are embedded seamlessly into 1-tap WhatsApp deep-links (`https://wa.me`) and transactional email templates for zero-friction customer settlement.
+* **Cryptographic Webhook Ingestion (`X-Razorpay-Signature`)**:
+  * Real-time listener supporting `payment.captured`, `payment.failed`, and `payment_link.paid` events.
+  * Payloads are verified via constant-time HMAC-SHA256 cryptographic signature comparison:
+    ```python
+    hmac.compare_digest(
+        hmac.new(secret.encode(), raw_body.encode(), hashlib.sha256).hexdigest(),
+        x_razorpay_signature
+    )
+    ```
+  * Enforces database-backed idempotency (`WebhookEvent` table) to prevent replay attacks and duplicate settlement executions.
+* **Settlement & MDR Fee Reconciliation**:
+  * Solves the common merchant problem of settlement opacity: reconciles Razorpay settlement batches against bank statement UTR credit entries (HDFC, ICICI, SBI, Axis).
+  * Automatically calculates and audits Merchant Discount Rate (MDR) fee deductions (e.g. 2% + GST) so businesses have full clarity on gross order value vs. net bank credits.
+* **Interactive Sandbox Environment (`/pay/simulate`)**:
+  * A dedicated simulator interface allowing evaluators and developers to test payment success, failure, and webhook callback lifecycles without requiring live banking credentials.
 
 ---
 
@@ -202,10 +243,26 @@ The core persistence tier is managed via **SQLAlchemy ORM** with SQLite for loca
 
 ---
 
+## ⏱️ 3-Minute Interactive Demo for Evaluators
+
+Evaluators and judges can experience the full autonomous loop locally in under 3 minutes:
+
+1. **Inspect the Liquidity Cockpit (`/dashboard` & `/cashflow`)**:
+   - Observe the 90-day predictive runway, burn velocity, and active money leak alerts.
+2. **Review an Autonomous Recovery Dossier (`/recovery`)**:
+   - Open any pending recovery case (`/recovery/[id]`). Inspect the AI root cause analysis and click **"Send via WhatsApp"** or **"Copy Payment Link"** to see the generated Razorpay payment link.
+3. **Simulate a Live Razorpay Settlement (`/pay/simulate`)**:
+   - Open the interactive sandbox. Complete a simulated 1-tap checkout &rarr; watch the HMAC-verified `payment.captured` webhook fire &rarr; return to the dashboard to observe the case marked **Recovered** 🎉.
+4. **Audit Bank Statement UTRs & MDR Fees (`/reconciliation`)**:
+   - Click **"Load Sample HDFC Statement"** to parse real-world statement lines, match UTR numbers, and inspect calculated gateway MDR fee variances.
+
+---
+
 ## 💻 Tech Stack & Tooling
 
 * **Frontend**: Next.js 16 (App Router, Turbopack, React 19, TypeScript 5, Tailwind CSS v4, Lucide Icons, Recharts).
 * **Backend**: FastAPI (Python 3.11+, ASGI asynchronous concurrency, Pydantic v2 validation, SQLAlchemy 2.0).
+* **Payment Infrastructure**: Razorpay Payment Links API, Razorpay Webhooks (HMAC-SHA256 verified), Cashfree fallback.
 * **Data Science & ML**: NumPy, Pandas, Scikit-Learn (Linear Regression, Isolation Forest).
 * **Background Scheduler**: Asyncio background task engine and APScheduler.
 * **CI/CD & DevOps**: GitHub Actions Matrix, Docker Compose multi-stage containerization (`node:20-alpine`, `python:3.11-slim`).
