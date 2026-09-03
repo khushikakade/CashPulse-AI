@@ -96,3 +96,53 @@ def test_cashfree_webhook_signature_verification():
     valid_sig = cf_wrapper.generate_test_signature(payload, ts)
     assert cf_wrapper.verify_webhook_signature(payload, ts, valid_sig) is True
     assert cf_wrapper.verify_webhook_signature(payload, ts, "invalid_sig_base64==") is False
+
+def test_email_service_dispatch():
+    from backend.app.services.email_service import EmailService
+    res = EmailService.send_payment_reminder(
+        customer_name="Rohan Verma",
+        customer_email="rohan@example.com",
+        amount_inr=1499.0,
+        payment_link="http://localhost:3000/pay/simulate?link_id=pl_test",
+        invoice_ref="INV-8821"
+    )
+    assert res["success"] is True
+    assert "rohan@example.com" in res["recipient"]
+
+def test_bank_statement_parser(db_session):
+    from backend.app.services.statement_parser import BankStatementParser
+    from backend.app.models import Invoice, Customer
+    
+    cust = Customer(name="Pooja Sharma", email="pooja@test.com", reliability_score=0.9)
+    db_session.add(cust)
+    db_session.commit()
+    
+    from datetime import datetime
+    inv = Invoice(
+        customer_id=cust.id,
+        invoice_number="INV-2026-01",
+        amount=500.0,
+        due_date=datetime.utcnow(),
+        status="pending"
+    )
+    db_session.add(inv)
+    db_session.commit()
+    
+    # Sample statement with clean match and MDR fee match
+    csv_data = """Date,Narration,Chq/Ref No,Withdrawal Amt,Deposit Amt,Closing Balance
+01/09/2026,UPI/523910294122/Pooja Sharma Payment,523910294122,0.00,489.02,10489.02
+02/09/2026,CHQ WDL-PRINTING COST,CHQ100,200.00,0.00,10289.02
+"""
+    result = BankStatementParser.parse_and_reconcile(csv_data, db_session)
+    assert result["success"] is True
+    assert result["matched_count"] >= 1
+    assert result["total_fees_detected_inr"] > 0
+    assert result["items"][0]["status"] == "MATCHED_WITH_MDR"
+    assert result["items"][0]["mdr_fee"] == 10.98
+
+def test_background_scanner_telemetry():
+    from backend.app.services.scheduler import background_scanner
+    status = background_scanner.get_status()
+    assert "running" in status
+    assert "interval_seconds" in status
+    assert status["interval_seconds"] == 1800

@@ -28,6 +28,18 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: Optional[str] = None
     LLM_PROVIDER: str = "mock"  # Options: mock, gemini, openai
     
+    # Transactional Email settings (Resend / SMTP)
+    RESEND_API_KEY: Optional[str] = None
+    SMTP_HOST: Optional[str] = None
+    SMTP_PORT: int = 587
+    SMTP_USER: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    EMAIL_FROM: str = "Finance Ops <billing@cashpulse.ai>"
+
+    # Autonomous Scanner Settings
+    SCANNER_INTERVAL_SECONDS: int = 1800  # 30 minutes
+    SCANNER_ENABLED: bool = True
+
     # System settings
     ENVIRONMENT: str = "development"
     

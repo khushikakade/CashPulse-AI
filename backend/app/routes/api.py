@@ -370,3 +370,125 @@ def process_command(cmd: CommandQuery):
     route = LLMService.route_command(cmd.query)
     return {"route": route}
 
+
+# -----------------------------------------------------------------------------
+# Customer Communication Dispatch (WhatsApp & Email)
+# -----------------------------------------------------------------------------
+class CommunicationDispatchRequest(BaseModel):
+    channel: str  # "whatsapp" or "email"
+    payment_link: Optional[str] = None
+    custom_note: Optional[str] = None
+
+@router.post("/recovery/{case_id}/dispatch")
+def dispatch_customer_communication(
+    case_id: str,
+    req: CommunicationDispatchRequest,
+    db: Session = Depends(get_db)
+):
+    case = db.query(RecoveryCase).filter(RecoveryCase.id == case_id).first()
+    if not case:
+        raise HTTPException(status_code=404, detail="Recovery case not found")
+        
+    customer = case.customer
+    if not customer:
+        raise HTTPException(status_code=400, detail="No customer attached to recovery case")
+        
+    amount = case.expected_recovery_value
+    if case.reference_type == "payment":
+        p = db.query(Payment).filter(Payment.id == case.reference_id).first()
+        if p:
+            amount = p.amount
+    else:
+        inv = db.query(Invoice).filter(Invoice.id == case.reference_id).first()
+        if inv:
+            amount = inv.amount
+
+    link = req.payment_link or f"http://localhost:3000/pay/simulate?link_id=pl_{case.id[:8]}&amount={amount}"
+    
+    if req.channel.lower() == "email":
+        from backend.app.services.email_service import email_service
+        res = email_service.send_payment_reminder(
+            customer_name=customer.name,
+            customer_email=customer.email,
+            amount_inr=amount,
+            payment_link=link,
+            invoice_ref=case.reference_id or case.id[:8]
+        )
+        db.add(AuditLog(
+            action_id=None,
+            event_type="EMAIL_REMINDER_DISPATCHED",
+            message=f"Payment reminder sent to {customer.name} ({customer.email}) for ₹{amount:,.2f}.",
+            payload={"case_id": case.id, "channel": "email", "result": res}
+        ))
+        db.commit()
+        return {"success": True, "channel": "email", "amount": amount, "result": res}
+        
+    elif req.channel.lower() == "whatsapp":
+        # Format WhatsApp click-to-chat copy
+        phone = getattr(customer, "phone", "+919820112345") or "+919820112345"
+        clean_phone = phone.replace("+", "").replace(" ", "").replace("-", "")
+        message = (
+            f"Hello {customer.name}! 👋 Friendly update from द्वीSakhi Merch Co. "
+            f"Your order/invoice #{case.reference_id or case.id[:8]} for ₹{amount:,.2f} is ready for settlement. "
+            f"You can pay in 1-tap via UPI/card here: {link} Thank you!"
+        )
+        import urllib.parse
+        encoded_msg = urllib.parse.quote(message)
+        wa_url = f"https://wa.me/{clean_phone}?text={encoded_msg}"
+        
+        db.add(AuditLog(
+            action_id=None,
+            event_type="WHATSAPP_NOTICE_DISPATCHED",
+            message=f"WhatsApp outreach initiated for {customer.name} ({phone}) for ₹{amount:,.2f}.",
+            payload={"case_id": case.id, "channel": "whatsapp", "phone": phone}
+        ))
+        db.commit()
+        return {"success": True, "channel": "whatsapp", "whatsapp_url": wa_url, "phone": phone, "amount": amount, "message": message}
+    else:
+        raise HTTPException(status_code=400, detail="Channel must be 'email' or 'whatsapp'")
+
+
+# -----------------------------------------------------------------------------
+# Autonomous Background Scanner Telemetry
+# -----------------------------------------------------------------------------
+@router.get("/scanner/status")
+def get_scanner_status():
+    from backend.app.services.scheduler import background_scanner
+    return background_scanner.get_status()
+
+@router.post("/scanner/trigger")
+async def trigger_scanner_cycle():
+    from backend.app.services.scheduler import background_scanner
+    res = await background_scanner.trigger_scan_now()
+    return res
+
+
+# -----------------------------------------------------------------------------
+# Bank Statement CSV Reconciliation
+# -----------------------------------------------------------------------------
+from fastapi import UploadFile, File
+
+@router.post("/reconciliation/upload-statement")
+async def upload_bank_statement(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    from backend.app.services.statement_parser import bank_statement_parser
+    contents = await file.read()
+    try:
+        csv_text = contents.decode("utf-8")
+    except UnicodeDecodeError:
+        csv_text = contents.decode("latin-1")
+        
+    result = bank_statement_parser.parse_and_reconcile(csv_text, db)
+    return result
+
+@router.get("/reconciliation/sample-statement")
+def get_sample_statement():
+    from backend.app.services.statement_parser import bank_statement_parser
+    return {
+        "filename": "hdfc_dwisakhi_september_2026.csv",
+        "csv": bank_statement_parser.get_sample_hdfc_statement_csv()
+    }
+
+

@@ -17,7 +17,10 @@ import {
   Send,
   RefreshCw,
   Mail,
-  Phone
+  Phone,
+  MessageSquare,
+  Copy,
+  Check
 } from "lucide-react";
 
 interface CaseDetails {
@@ -61,6 +64,8 @@ export default function CaseDetail() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [dispatchLoading, setDispatchLoading] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const fetchDetails = async () => {
     try {
@@ -237,6 +242,62 @@ export default function CaseDetail() {
   const caseNum = `CP-${details.id.substr(0, 8).toUpperCase()}`;
   const totalAmount = details.expected_recovery_value / Math.max(0.1, details.recovery_probability);
   const isRecovered = details.current_status === "recovered";
+
+  const activeLink = details.actions.find((a) => a.checkout_url)?.checkout_url ||
+    `http://localhost:3000/pay/simulate?link_id=pl_${details.id.substr(0, 8)}&amount=${Math.round(totalAmount)}`;
+
+  const handleDispatch = async (channel: "whatsapp" | "email") => {
+    setDispatchLoading(channel);
+    try {
+      const res = await fetch(`http://localhost:8000/api/v1/recovery/${details.id}/dispatch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          channel,
+          payment_link: activeLink
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (channel === "whatsapp" && data.whatsapp_url) {
+          window.open(data.whatsapp_url, "_blank");
+          showToast(
+            "WhatsApp Chat Initiated! 💬",
+            `Pre-filled friendly message drafted for ${details.customer?.name}.`,
+            "success"
+          );
+        } else if (channel === "email") {
+          showToast(
+            "Official Notice Emailed! ✉️",
+            `Branded payment link sent to ${details.customer?.email}.`,
+            "success"
+          );
+        }
+      } else {
+        showToast("Dispatch Notice", "Logged outreach to audit trail.", "info");
+      }
+    } catch (e) {
+      console.error(e);
+      if (channel === "whatsapp") {
+        const phone = (details.customer?.phone || "+919820112345").replace(/\D/g, "");
+        const text = encodeURIComponent(
+          `Hello ${details.customer?.name}! 👋 Friendly update from द्वीSakhi Merch Co. Your pending invoice of ₹${Math.round(totalAmount)} is ready for settlement. You can pay here: ${activeLink} Thank you!`
+        );
+        window.open(`https://wa.me/${phone}?text=${text}`, "_blank");
+        showToast("WhatsApp Opened! 💬", `Direct chat opened with ${details.customer?.name}.`, "success");
+      }
+    } finally {
+      setDispatchLoading(null);
+    }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(activeLink);
+    setLinkCopied(true);
+    showToast("Link Copied", activeLink, "info");
+    setTimeout(() => setLinkCopied(false), 2500);
+  };
 
   return (
     <div className="flex flex-col md:flex-row bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
@@ -452,6 +513,71 @@ export default function CaseDetail() {
                 One-tap UPI payment link generated via Razorpay sandbox.
               </p>
             </div>
+          </div>
+        </section>
+
+        {/* 4.5. Instant Customer Outreach: WhatsApp & Email */}
+        <section className="warm-card p-5 sm:p-6 space-y-4 bg-gradient-to-r from-white via-[#FAF9F6] to-[#EAF3ED]/30">
+          <div className="flex items-center justify-between border-b border-[#E5E1D8] pb-3">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-[#194F34]" />
+              <h3 className="font-display text-base font-bold text-[#141312]">
+                Instant Customer Outreach
+              </h3>
+            </div>
+            <span className="badge-sage text-[10px]">1-Tap Action</span>
+          </div>
+
+          <p className="text-xs text-[#54504A] leading-relaxed">
+            Reach out directly to <strong>{details.customer?.name}</strong> with the verified payment link. CashPulse drafts an empathetic reminder so you can settle this in seconds.
+          </p>
+
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <button
+              onClick={() => handleDispatch("whatsapp")}
+              disabled={dispatchLoading !== null}
+              className="bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs px-4 py-2.5 rounded-full font-bold flex items-center gap-2 shadow-xs transition-all tap-target cursor-pointer"
+              title="Open pre-filled chat in WhatsApp"
+            >
+              {dispatchLoading === "whatsapp" ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <MessageSquare className="w-4 h-4" />
+              )}
+              <span>Send via WhatsApp</span>
+            </button>
+
+            <button
+              onClick={() => handleDispatch("email")}
+              disabled={dispatchLoading !== null}
+              className="btn-secondary text-xs px-4 py-2.5 rounded-full font-bold flex items-center gap-2 tap-target cursor-pointer"
+              title="Send branded email reminder with payment link"
+            >
+              {dispatchLoading === "email" ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Mail className="w-4 h-4 text-[#194F34]" />
+              )}
+              <span>Email Official Notice</span>
+            </button>
+
+            <button
+              onClick={handleCopyLink}
+              className="btn-secondary text-xs px-4 py-2.5 rounded-full font-semibold flex items-center gap-1.5 tap-target cursor-pointer"
+              title="Copy payment link"
+            >
+              {linkCopied ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-[#194F34]" />
+                  <span>Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Copy Payment Link</span>
+                </>
+              )}
+            </button>
           </div>
         </section>
 

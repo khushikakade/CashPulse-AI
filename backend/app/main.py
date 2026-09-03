@@ -26,6 +26,16 @@ app.include_router(api.router, prefix=settings.API_V1_STR)
 app.include_router(webhooks.router, prefix=f"{settings.API_V1_STR}/webhooks")
 app.include_router(gateways.router, prefix=f"{settings.API_V1_STR}/gateways")
 
+@app.on_event("startup")
+async def startup_event():
+    from backend.app.services.scheduler import background_scanner
+    background_scanner.start()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    from backend.app.services.scheduler import background_scanner
+    background_scanner.stop()
+
 @app.get("/health")
 def health_check():
     """
