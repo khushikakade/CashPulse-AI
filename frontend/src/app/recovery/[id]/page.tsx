@@ -15,7 +15,9 @@ import {
   Clock,
   UserCheck,
   Send,
-  RefreshCw
+  RefreshCw,
+  Mail,
+  Phone
 } from "lucide-react";
 
 interface CaseDetails {
@@ -204,9 +206,9 @@ export default function CaseDetail() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-[#FAF9F6]">
+      <div className="flex flex-col md:flex-row min-h-screen bg-[#FAF9F6]">
         <Sidebar />
-        <main className="flex-1 p-8 max-w-4xl mx-auto space-y-6 animate-pulse">
+        <main className="flex-1 p-4 sm:p-8 max-w-4xl mx-auto space-y-6 animate-pulse w-full min-w-0 pb-24 md:pb-10">
           <div className="h-8 w-40 bg-[#E5E1D8] rounded-xl" />
           <div className="h-44 bg-[#FFFFFF] border border-[#E5E1D8] rounded-3xl" />
           <div className="h-64 bg-[#FFFFFF] border border-[#E5E1D8] rounded-3xl" />
@@ -217,13 +219,13 @@ export default function CaseDetail() {
 
   if (!details) {
     return (
-      <div className="flex bg-[#FAF9F6] text-[#141312] min-h-screen">
+      <div className="flex flex-col md:flex-row bg-[#FAF9F6] text-[#141312] min-h-screen">
         <Sidebar />
-        <main className="flex-1 p-10 max-w-2xl mx-auto space-y-4">
+        <main className="flex-1 p-4 sm:p-10 max-w-2xl mx-auto space-y-4 w-full min-w-0 pb-24 md:pb-10">
           <div className="warm-card p-8 text-center space-y-3">
             <h2 className="font-display text-lg font-bold text-[#141312]">Case File Not Found</h2>
             <p className="text-xs text-[#54504A]">This recovery record could not be loaded.</p>
-            <button onClick={() => router.back()} className="btn-primary text-xs">
+            <button onClick={() => router.back()} className="btn-primary text-xs min-h-[44px]">
               Go Back
             </button>
           </div>
@@ -237,10 +239,10 @@ export default function CaseDetail() {
   const isRecovered = details.current_status === "recovered";
 
   return (
-    <div className="flex bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
+    <div className="flex flex-col md:flex-row bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
       <Sidebar />
 
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto max-w-4xl mx-auto space-y-8">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto max-w-4xl mx-auto space-y-6 sm:space-y-8 pb-24 md:pb-10 w-full min-w-0">
         {/* Navigation & Header */}
         <header className="flex items-center justify-between pb-4 border-b border-[#E5E1D8]">
           <div className="flex items-center gap-3">
@@ -337,7 +339,7 @@ export default function CaseDetail() {
             </span>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 text-xs">
             <div>
               <span className="text-[#706B63] block">Customer Name</span>
               <span className="font-bold text-[#141312] mt-0.5 block">
@@ -346,9 +348,25 @@ export default function CaseDetail() {
             </div>
             <div>
               <span className="text-[#706B63] block">Email</span>
-              <span className="font-semibold text-[#141312] mt-0.5 block truncate">
-                {details.customer?.email}
-              </span>
+              <a
+                href={`mailto:${details.customer?.email}`}
+                className="font-semibold text-[#194F34] hover:underline mt-0.5 flex items-center gap-1 truncate"
+                title={`Email ${details.customer?.email}`}
+              >
+                <Mail className="w-3.5 h-3.5 shrink-0 text-[#194F34]" />
+                <span className="truncate">{details.customer?.email}</span>
+              </a>
+            </div>
+            <div>
+              <span className="text-[#706B63] block">Phone / Mobile</span>
+              <a
+                href={`tel:${details.customer?.phone ? details.customer.phone.replace(/\s+/g, "") : "+919820112345"}`}
+                className="font-semibold text-[#194F34] hover:underline mt-0.5 flex items-center gap-1"
+                title={`Dial ${details.customer?.phone || "+91 98201 12345"}`}
+              >
+                <Phone className="w-3.5 h-3.5 shrink-0 text-[#194F34]" />
+                <span>{details.customer?.phone || "+91 98201 12345"}</span>
+              </a>
             </div>
             <div>
               <span className="text-[#706B63] block">Average Payment Delay</span>

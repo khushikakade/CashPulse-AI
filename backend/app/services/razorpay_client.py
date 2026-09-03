@@ -5,17 +5,20 @@ from typing import Dict, Any, Optional
 from backend.app.config import settings
 
 class RazorpayClientWrapper:
-    def __init__(self):
-        self.key_id = settings.RAZORPAY_KEY_ID
-        self.key_secret = settings.RAZORPAY_KEY_SECRET
-        self.webhook_secret = settings.RAZORPAY_WEBHOOK_SECRET
+    def __init__(self, key_id: Optional[str] = None, key_secret: Optional[str] = None, webhook_secret: Optional[str] = None):
+        self.key_id = key_id or settings.RAZORPAY_KEY_ID
+        self.key_secret = key_secret or settings.RAZORPAY_KEY_SECRET
+        self.webhook_secret = webhook_secret or settings.RAZORPAY_WEBHOOK_SECRET
         
-        # Check if keys are placeholders
-        self.is_mock_mode = (
-            "placeholder" in self.key_id or 
-            "placeholder" in self.key_secret or
-            settings.ENVIRONMENT == "development"
+        # Determine if real keys are provided
+        has_real_keys = (
+            bool(self.key_id) and 
+            bool(self.key_secret) and 
+            "placeholder" not in self.key_id.lower() and 
+            "placeholder" not in self.key_secret.lower()
         )
+        self.is_mock_mode = not has_real_keys
+        self.client = None
         
         if not self.is_mock_mode:
             try:
@@ -123,8 +126,8 @@ class RazorpayClientWrapper:
         """
         Validates webhook signatures sent by Razorpay to guarantee event payload integrity.
         """
-        if self.is_mock_mode or not self.webhook_secret:
-            # Always pass in mock/test modes for seamless demonstration
+        if not self.webhook_secret or "placeholder" in self.webhook_secret.lower():
+            # In simulation mode or when secret is placeholder, allow test events
             return True
             
         try:
@@ -136,5 +139,54 @@ class RazorpayClientWrapper:
             return hmac.compare_digest(expected_signature, signature)
         except Exception:
             return False
+
+    def generate_test_signature(self, body_payload: str) -> str:
+        """
+        Helper for testing console to produce valid HMAC-SHA256 signatures.
+        """
+        secret = self.webhook_secret if (self.webhook_secret and "placeholder" not in self.webhook_secret.lower()) else "rzp_webhook_secret_placeholder"
+        return hmac.new(
+            secret.encode('utf-8'),
+            body_payload.encode('utf-8'),
+            hashlib.sha256
+        ).hexdigest()
+
+    def get_masked_key(self) -> str:
+        if not self.key_id or "placeholder" in self.key_id.lower():
+            return "rzp_test_••••••••"
+        if len(self.key_id) > 10:
+            return self.key_id[:8] + "••••" + self.key_id[-4:]
+        return "rzp_••••••••"
+
+    def validate_credentials(self) -> Dict[str, Any]:
+        """
+        Validates whether configured Razorpay credentials are valid.
+        """
+        if self.is_mock_mode or not self.client:
+            return {
+                "valid": True,
+                "mode": "simulated",
+                "message": "Running in simulated test mode (sandbox fallback active)",
+                "key_id": self.get_masked_key(),
+                "provider": "razorpay"
+            }
+        try:
+            self.client.order.all({"count": 1})
+            is_test_mode = self.key_id.startswith("rzp_test_")
+            return {
+                "valid": True,
+                "mode": "test" if is_test_mode else "live",
+                "message": f"Authenticated with Razorpay ({'Test Sandbox' if is_test_mode else 'Live Production'})",
+                "key_id": self.get_masked_key(),
+                "provider": "razorpay"
+            }
+        except Exception as e:
+            return {
+                "valid": False,
+                "mode": "error",
+                "message": f"Razorpay authentication error: {str(e)}",
+                "key_id": self.get_masked_key(),
+                "provider": "razorpay"
+            }
 
 razorpay_client = RazorpayClientWrapper()

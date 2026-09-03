@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
+import EmptyState from "../components/EmptyState";
 import { History, ShieldCheck, CheckCircle2, AlertCircle, Clock, Search } from "lucide-react";
 
 interface AuditLog {
@@ -81,10 +82,10 @@ export default function AuditTrail() {
   );
 
   return (
-    <div className="flex bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
+    <div className="flex flex-col md:flex-row bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
       <Sidebar />
 
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto max-w-4xl mx-auto space-y-10">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto max-w-4xl mx-auto space-y-8 sm:space-y-10 pb-24 md:pb-10 w-full min-w-0">
         {/* Header */}
         <header className="pb-4 border-b border-[#E5E1D8]">
           <span className="badge-sage text-xs mb-1.5">
@@ -100,14 +101,14 @@ export default function AuditTrail() {
 
         {/* Search & Stats Bar */}
         <section className="warm-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-[#706B63] absolute left-3 top-2.5" />
+          <div className="relative flex-1 max-w-md w-full">
+            <Search className="w-4 h-4 text-[#706B63] absolute left-3.5 top-3" />
             <input
               type="text"
               placeholder="Search history by customer name, bill, or event..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#FAF9F6] border border-[#E5E1D8] rounded-xl pl-9 pr-4 py-2 text-xs text-[#141312] placeholder-[#706B63] focus:outline-none focus:border-[#141312]"
+              className="w-full bg-[#FAF9F6] border border-[#E5E1D8] rounded-xl pl-10 pr-4 py-2.5 text-xs text-[#141312] placeholder-[#706B63] focus:outline-none focus:border-[#141312] min-h-[44px]"
             />
           </div>
 
@@ -122,9 +123,21 @@ export default function AuditTrail() {
 
         {/* Timeline Stream */}
         <section className="space-y-3">
-          {filteredLogs.map((log) => {
-            const isSuccess = log.status === "SUCCESS";
-            const isPaused = log.status === "PAUSED";
+          {filteredLogs.length === 0 ? (
+            <EmptyState
+              icon={Search}
+              badge="No Events"
+              title="No audit events match your search"
+              description={search ? `No activity records found matching "${search}". Try checking for different customer names or event types.` : "No automated or human actions have been recorded yet."}
+              actionLabel={search ? "Clear Search Filter" : "Explore Dashboard"}
+              onAction={search ? () => setSearch("") : undefined}
+              actionHref={search ? undefined : "/dashboard"}
+              variant="neutral"
+            />
+          ) : (
+            filteredLogs.map((log) => {
+              const isSuccess = log.status === "SUCCESS";
+              const isPaused = log.status === "PAUSED";
 
             return (
               <div
@@ -177,7 +190,8 @@ export default function AuditTrail() {
                 </div>
               </div>
             );
-          })}
+          })
+        )}
         </section>
       </main>
     </div>

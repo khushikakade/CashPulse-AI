@@ -146,7 +146,7 @@ function SimulateContent() {
 
 export default function SimulatePayment() {
   return (
-    <div className="bg-[#FAF9F6] text-[#1A1A1A] min-h-screen flex flex-col items-center justify-center font-sans px-4 py-12">
+    <div className="bg-[#FAF9F6] text-[#1A1A1A] min-h-screen flex flex-col items-center justify-center font-sans px-4 py-12 overflow-x-hidden w-full">
       <Suspense
         fallback={
           <div className="text-xs text-[#7A7770]">

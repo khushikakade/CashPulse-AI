@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import CountUp from "../components/CountUp";
+import EmptyState from "../components/EmptyState";
 import { showToast, triggerCelebration } from "../components/Toast";
 import { CheckSquare, ShieldCheck, CheckCircle2, XCircle, Clock, RefreshCw } from "lucide-react";
 
@@ -104,10 +105,10 @@ export default function Approvals() {
   };
 
   return (
-    <div className="flex bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
+    <div className="flex flex-col md:flex-row bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
       <Sidebar />
 
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto max-w-4xl mx-auto space-y-10">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto max-w-4xl mx-auto space-y-8 sm:space-y-10 pb-24 md:pb-10 w-full min-w-0">
         {/* Header */}
         <header className="pb-4 border-b border-[#E5E1D8]">
           <span className="badge-honey text-xs mb-1.5">
@@ -138,17 +139,17 @@ export default function Approvals() {
           </div>
 
           {items.length === 0 ? (
-            <div className="warm-card p-12 text-center space-y-3">
-              <div className="w-12 h-12 rounded-full bg-[#EAF3ED] text-[#194F34] flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-              <h3 className="font-display text-base font-bold text-[#141312]">
-                You're all caught up!
-              </h3>
-              <p className="text-xs text-[#54504A] max-w-md mx-auto">
-                No actions are currently paused for manual approval. Everything is operating smoothly within your safety rules.
-              </p>
-            </div>
+            <EmptyState
+              icon={CheckCircle2}
+              badge="All Clear"
+              title="You're all caught up!"
+              description="No high-value actions are currently paused for approval. Everything is operating automatically within your established rules."
+              actionLabel="View Audit History"
+              actionHref="/audit"
+              secondaryLabel="Review Safety Limits"
+              secondaryHref="/settings"
+              variant="sage"
+            />
           ) : (
             <div className="space-y-4">
               {items.map((item) => (

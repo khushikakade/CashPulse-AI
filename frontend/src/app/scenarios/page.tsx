@@ -102,10 +102,10 @@ export default function Scenarios() {
   const scenarioCash = Math.max(0, Math.round(cashAvailable - stressImpact));
 
   return (
-    <div className="flex bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
+    <div className="flex flex-col md:flex-row bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
       <Sidebar />
 
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto max-w-4xl mx-auto space-y-10">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto max-w-4xl mx-auto space-y-8 sm:space-y-10 pb-24 md:pb-10 w-full min-w-0">
         {/* Header */}
         <header className="pb-4 border-b border-[#E5E1D8]">
           <span className="badge-honey text-xs mb-1.5">
@@ -120,7 +120,7 @@ export default function Scenarios() {
         </header>
 
         {/* Interactive What-If Section */}
-        <section className="warm-card p-6 md:p-8 space-y-6">
+        <section className="warm-card p-5 sm:p-8 space-y-6">
           <div className="border-b border-[#E5E1D8] pb-3">
             <h2 className="font-display text-base font-bold text-[#141312]">
               Late Payment Slider
@@ -131,8 +131,8 @@ export default function Scenarios() {
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between text-xs">
-              <label className="font-semibold text-[#141312] flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <label className="font-semibold text-[#141312] flex items-center gap-2 flex-wrap">
                 <span>If</span>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#FDF0EB] text-[#8E3015] font-bold text-sm border border-[#F5C7B5]">
                   {latePayPercent}%
@@ -151,18 +151,18 @@ export default function Scenarios() {
               step="5"
               value={latePayPercent}
               onChange={(e) => setLatePayPercent(Number(e.target.value))}
-              className="w-full h-2.5 bg-[#E5E1D8] rounded-lg appearance-none cursor-pointer accent-[#141312]"
+              className="w-full h-3 bg-[#E5E1D8] rounded-lg appearance-none cursor-pointer accent-[#141312] tap-target"
             />
 
-            <div className="flex justify-between text-[11px] text-[#706B63] font-medium">
-              <span>0% (Everyone pays on time)</span>
+            <div className="flex justify-between text-[10px] sm:text-[11px] text-[#706B63] font-medium gap-1">
+              <span>0% (On time)</span>
               <span>50% delay</span>
-              <span>100% (Nobody pays on time)</span>
+              <span>100% (All late)</span>
             </div>
           </div>
 
           {/* Real-time Narrative Impact Sentence */}
-          <div className="p-5 rounded-2xl bg-[#FAF9F6] border border-[#E5E1D8] space-y-2">
+          <div className="p-4 sm:p-5 rounded-2xl bg-[#FAF9F6] border border-[#E5E1D8] space-y-2">
             <div className="flex items-center gap-2 text-xs font-semibold text-[#8E3015]">
               <ShieldAlert className="w-4 h-4 text-[#8E3015]" /> What This Means For Your Business
             </div>
@@ -180,7 +180,7 @@ export default function Scenarios() {
           </div>
 
           {/* 3 Outcome Comparison Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
             <div className="p-4 rounded-2xl bg-[#FFFFFF] border border-[#E5E1D8] shadow-xs">
               <span className="text-[11px] font-semibold text-[#706B63] block">
                 Your Normal Cash

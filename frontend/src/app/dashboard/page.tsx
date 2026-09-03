@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import CountUp from "../components/CountUp";
+import EmptyState from "../components/EmptyState";
 import { showToast, triggerCelebration } from "../components/Toast";
 import {
   Sparkles,
@@ -151,14 +152,14 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-[#FAF9F6]">
+      <div className="flex flex-col md:flex-row min-h-screen bg-[#FAF9F6]">
         <Sidebar />
-        <main className="flex-1 p-8 max-w-5xl mx-auto space-y-8 animate-pulse">
+        <main className="flex-1 p-4 sm:p-8 max-w-5xl mx-auto space-y-8 animate-pulse w-full min-w-0 pb-24 md:pb-10">
           <div className="h-8 w-48 bg-[#E5E1D8] rounded-xl" />
           <div className="h-44 bg-[#FFFFFF] border border-[#E5E1D8] rounded-3xl p-6 space-y-4">
             <div className="h-6 w-3/4 bg-[#E5E1D8] rounded-lg" />
             <div className="h-4 w-1/2 bg-[#F4F1EA] rounded-lg" />
-            <div className="grid grid-cols-4 gap-4 pt-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4">
               <div className="h-16 bg-[#F4F1EA] rounded-2xl" />
               <div className="h-16 bg-[#F4F1EA] rounded-2xl" />
               <div className="h-16 bg-[#F4F1EA] rounded-2xl" />
@@ -180,10 +181,10 @@ export default function Dashboard() {
   const healthScore = metrics?.financial_health_score ?? 88;
 
   return (
-    <div className="flex bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
+    <div className="flex flex-col md:flex-row bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
       <Sidebar />
 
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto max-w-5xl mx-auto space-y-10">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto max-w-5xl mx-auto space-y-8 sm:space-y-10 pb-24 md:pb-10 w-full min-w-0">
         
         {/* Header */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E1D8]">
@@ -380,17 +381,17 @@ export default function Dashboard() {
 
           <div className="space-y-3">
             {actions.length === 0 ? (
-              <div className="warm-card p-10 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full bg-[#EAF3ED] text-[#194F34] flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-6 h-6" />
-                </div>
-                <h3 className="font-display text-base font-bold text-[#141312]">
-                  All clear! No urgent money to collect today.
-                </h3>
-                <p className="text-xs text-[#54504A] max-w-sm mx-auto">
-                  All customer invoices are tracked, and no dropped transactions require your manual attention right now.
-                </p>
-              </div>
+              <EmptyState
+                icon={CheckCircle2}
+                badge="All Clear"
+                title="No urgent customer money to collect today"
+                description="All client invoices and online checkout drops are actively tracked. CashPulse will alert you if any customer bill delays."
+                actionLabel="Explore Scenarios"
+                actionHref="/scenarios"
+                secondaryLabel="View Receivables"
+                secondaryHref="/receivables"
+                variant="sage"
+              />
             ) : (
               actions.map((act, idx) => (
                 <div

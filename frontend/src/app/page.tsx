@@ -23,11 +23,16 @@ import {
   Layers,
   Clock,
   Eye,
-  MessageSquareQuote
+  MessageSquareQuote,
+  Menu,
+  X,
+  Mail,
+  Phone
 } from "lucide-react";
 
 export default function Home() {
   const [activeBusiness, setActiveBusiness] = useState<{ name: string; id: string } | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Interactive 3D Hero Card Mouse Tilt
   const heroCardRef = useRef<HTMLDivElement>(null);
@@ -174,10 +179,10 @@ export default function Home() {
           </nav>
 
           {/* Right Action CTA */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <Link
               href="/dashboard"
-              className="text-xs font-semibold text-white bg-[#13161F] hover:bg-[#1A1F2B] border border-white/10 hover:border-[#00F59B]/40 px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-xs"
+              className="hidden sm:flex text-xs font-semibold text-white bg-[#13161F] hover:bg-[#1A1F2B] border border-white/10 hover:border-[#00F59B]/40 px-3.5 py-2.5 rounded-xl transition-all items-center gap-2 shadow-xs min-h-[40px]"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#00F59B] animate-pulse" />
               <span>{activeBusiness ? `Open ${activeBusiness.name}` : "Open द्वीSakhi"}</span>
@@ -186,15 +191,95 @@ export default function Home() {
 
             <Link
               href="/onboarding"
-              className="relative inline-flex items-center justify-center p-0.5 overflow-hidden rounded-xl font-semibold text-xs transition-all group shadow-lg shadow-[#00F59B]/20"
+              className="relative inline-flex items-center justify-center p-0.5 overflow-hidden rounded-xl font-semibold text-xs transition-all group shadow-lg shadow-[#00F59B]/20 min-h-[44px]"
             >
               <span className="absolute inset-0 bg-gradient-to-r from-[#00F59B] via-[#34D399] to-[#38BDF8] group-hover:opacity-90 transition-opacity" />
-              <span className="relative px-4 py-2.5 bg-[#0A0D12] text-[#00F59B] rounded-[10px] flex items-center gap-2 group-hover:bg-transparent group-hover:text-black font-bold transition-all">
+              <span className="relative px-3.5 sm:px-4 py-2 bg-[#0A0D12] text-[#00F59B] rounded-[10px] flex items-center gap-1.5 group-hover:bg-transparent group-hover:text-black font-bold transition-all">
                 Launch Free <ArrowRight className="w-3.5 h-3.5" />
               </span>
             </Link>
+
+            {/* Mobile Hamburger Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2.5 rounded-xl text-slate-300 hover:text-white bg-white/5 border border-white/10 transition-colors tap-target"
+              aria-label="Toggle mobile menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5 text-white" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Dropdown Menu Sheet */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-white/[0.08] bg-[#08090C]/95 backdrop-blur-2xl px-5 py-6 space-y-5 animate-fade-slide">
+            <nav className="flex flex-col space-y-2 text-sm font-semibold text-slate-200">
+              <a
+                href="#how-it-works"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2.5 rounded-xl hover:bg-white/5 hover:text-[#00F59B] transition-colors flex items-center justify-between tap-target"
+              >
+                <span>How It Works</span>
+                <ChevronRight className="w-4 h-4 text-slate-500" />
+              </a>
+              <a
+                href="#demo-preview"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2.5 rounded-xl hover:bg-white/5 hover:text-[#00F59B] transition-colors flex items-center justify-between tap-target"
+              >
+                <span>Live Preview</span>
+                <ChevronRight className="w-4 h-4 text-slate-500" />
+              </a>
+              <a
+                href="#calculator"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2.5 rounded-xl hover:bg-white/5 hover:text-[#00F59B] transition-colors flex items-center justify-between tap-target"
+              >
+                <span>ROI Calculator</span>
+                <ChevronRight className="w-4 h-4 text-slate-500" />
+              </a>
+              <a
+                href="#case-study"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2.5 rounded-xl hover:bg-white/5 hover:text-[#00F59B] transition-colors flex items-center justify-between tap-target"
+              >
+                <span>Case Study</span>
+                <ChevronRight className="w-4 h-4 text-slate-500" />
+              </a>
+              <Link
+                href="/scenarios"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2.5 rounded-xl hover:bg-white/5 hover:text-[#00F59B] transition-colors flex items-center justify-between tap-target"
+              >
+                <span className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-[#00F59B]" /> What-If Simulator
+                </span>
+                <ChevronRight className="w-4 h-4 text-slate-500" />
+              </Link>
+            </nav>
+
+            <div className="pt-3 border-t border-white/10 flex flex-col gap-2.5">
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full text-xs font-semibold text-white bg-[#13161F] hover:bg-[#1A1F2B] border border-white/10 px-4 py-3 rounded-xl transition-all flex items-center justify-center gap-2 min-h-[44px]"
+              >
+                <span className="w-2 h-2 rounded-full bg-[#00F59B] animate-pulse" />
+                <span>{activeBusiness ? `Open ${activeBusiness.name}` : "Open द्वीSakhi"}</span>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+              </Link>
+
+              <Link
+                href="/onboarding"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full text-center py-3 bg-gradient-to-r from-[#00F59B] to-[#05DF72] text-[#08090C] font-bold text-xs rounded-xl shadow-lg shadow-[#00F59B]/20 flex items-center justify-center gap-2 min-h-[44px]"
+              >
+                Launch Free Workspace
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+        )}
       </header>
 
       <main className="relative z-10 space-y-24 sm:space-y-36 pb-28">
@@ -208,10 +293,11 @@ export default function Home() {
           <div className="absolute top-0 right-[-10%] lg:right-[-5%] w-[680px] lg:w-[920px] h-[640px] pointer-events-none opacity-45 select-none z-0 mix-blend-screen">
             <div className="relative w-full h-full">
               <Image
-                src="/hero-liquidity-flow.jpg"
+                src="/hero-liquidity-flow.webp"
                 alt="Glowing Liquidity Waveform Stream"
                 fill
                 priority
+                sizes="(max-width: 768px) 100vw, 920px"
                 className="object-cover object-center"
                 style={{
                   maskImage: "radial-gradient(ellipse at 70% 40%, black 30%, rgba(0,0,0,0.5) 60%, transparent 85%)",
@@ -537,7 +623,7 @@ export default function Home() {
         {/* ------------------------------------------------------------- */}
         {/* 4. HOW IT WORKS: The 4-Step Autonomous Recovery Engine       */}
         {/* ------------------------------------------------------------- */}
-        <section id="how-it-works" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+        <section id="how-it-works" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 scroll-mt-24">
           
           <div className="text-center max-w-2xl mx-auto space-y-4">
             <span className="px-3.5 py-1.5 rounded-full bg-[#00F59B]/10 border border-[#00F59B]/30 text-[#00F59B] text-xs font-bold font-mono uppercase tracking-wider">
@@ -624,7 +710,7 @@ export default function Home() {
         {/* ------------------------------------------------------------- */}
         {/* 5. SHOW-DON'T-TELL: Interactive Tabbed Product Showcase      */}
         {/* ------------------------------------------------------------- */}
-        <section id="demo-preview" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+        <section id="demo-preview" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 scroll-mt-24">
           
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/[0.08] pb-6">
             <div className="space-y-2">
@@ -814,7 +900,7 @@ export default function Home() {
         {/* ------------------------------------------------------------- */}
         {/* 6. INTERACTIVE RECOVERY CALCULATOR: Drag Sliders in Real Time */}
         {/* ------------------------------------------------------------- */}
-        <section id="calculator" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section id="calculator" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
           <div className="dark-glass-emerald rounded-3xl p-8 sm:p-12 relative overflow-hidden space-y-8">
             
             <div className="max-w-2xl space-y-3">
@@ -935,7 +1021,7 @@ export default function Home() {
         {/* ------------------------------------------------------------- */}
         {/* 7. REAL CUSTOMER SPOTLIGHT: द्वीSakhi (Neha & Khushi)          */}
         {/* ------------------------------------------------------------- */}
-        <section id="case-study" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section id="case-study" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
           <div className="p-8 sm:p-12 rounded-3xl dark-glass border border-white/[0.08] relative overflow-hidden space-y-6">
             
             <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#00F59B] uppercase tracking-wider">
@@ -1076,23 +1162,50 @@ export default function Home() {
       {/* 10. HIGH-CRAFT FINTECH FOOTER                                 */}
       {/* ------------------------------------------------------------- */}
       <footer className="border-t border-white/[0.08] bg-[#06070A] py-12 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-400">
-          <div className="flex items-center gap-3">
-            <span className="font-display font-bold text-base text-white">CashPulse AI</span>
-            <span>•</span>
-            <span>Autonomous Cash Flow & AR Recovery OS</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-400">
+            <div className="flex items-center gap-3">
+              <span className="font-display font-bold text-base text-white">CashPulse AI</span>
+              <span>•</span>
+              <span>Autonomous Cash Flow & AR Recovery OS</span>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-6">
+              <Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link>
+              <Link href="/receivables" className="hover:text-white transition-colors">Receivables</Link>
+              <Link href="/recovery" className="hover:text-white transition-colors">Recovery</Link>
+              <Link href="/scenarios" className="hover:text-white transition-colors">What-If Simulator</Link>
+              <Link href="/approvals" className="hover:text-white transition-colors">Approvals</Link>
+              <Link href="/settings" className="hover:text-white transition-colors">Settings</Link>
+            </div>
+
+            <div className="flex items-center gap-2 text-slate-400 text-[11px] font-mono">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#00F59B]" /> 256-Bit Encrypted
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6">
-            <Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link>
-            <Link href="/receivables" className="hover:text-white transition-colors">Receivables</Link>
-            <Link href="/recovery" className="hover:text-white transition-colors">Recovery</Link>
-            <Link href="/scenarios" className="hover:text-white transition-colors">What-If Simulator</Link>
-            <Link href="/approvals" className="hover:text-white transition-colors">Approvals</Link>
-          </div>
+          <div className="pt-6 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <div>
+              Built for high-growth Indian commerce brands & MSMEs. Powered by DwiSakhi telemetry.
+            </div>
 
-          <div className="flex items-center gap-2 text-slate-400 text-[11px] font-mono">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#00F59B]" /> 256-Bit Encrypted
+            <div className="flex items-center gap-6">
+              <a
+                href="mailto:support@cashpulse.ai"
+                className="hover:text-[#00F59B] transition-colors flex items-center gap-1.5 tap-target min-h-[36px]"
+              >
+                <Mail className="w-3.5 h-3.5 text-[#00F59B]" />
+                <span>support@cashpulse.ai</span>
+              </a>
+
+              <a
+                href="tel:+919820112345"
+                className="hover:text-[#00F59B] transition-colors flex items-center gap-1.5 tap-target min-h-[36px]"
+              >
+                <Phone className="w-3.5 h-3.5 text-[#00F59B]" />
+                <span>+91 98201 12345</span>
+              </a>
+            </div>
           </div>
         </div>
       </footer>

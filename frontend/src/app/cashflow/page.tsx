@@ -58,10 +58,10 @@ export default function CashFlowForecasting() {
   const effectiveRunway = runway > 0 ? runway : 90;
 
   return (
-    <div className="flex bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
+    <div className="flex flex-col md:flex-row bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
       <Sidebar />
 
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto max-w-5xl mx-auto space-y-10">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto max-w-5xl mx-auto space-y-8 sm:space-y-10 pb-24 md:pb-10 w-full min-w-0">
         {/* Header */}
         <header className="pb-4 border-b border-[#E5E1D8]">
           <span className="badge-sage text-xs mb-1.5">

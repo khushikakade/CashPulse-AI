@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.config import settings
 from backend.app.database import engine, Base
-from backend.app.routes import api, webhooks
+from backend.app.routes import api, webhooks, gateways
 
 # Initialize Database tables
 Base.metadata.create_all(bind=engine)
@@ -24,6 +24,7 @@ app.add_middleware(
 # Register routers
 app.include_router(api.router, prefix=settings.API_V1_STR)
 app.include_router(webhooks.router, prefix=f"{settings.API_V1_STR}/webhooks")
+app.include_router(gateways.router, prefix=f"{settings.API_V1_STR}/gateways")
 
 @app.get("/health")
 def health_check():

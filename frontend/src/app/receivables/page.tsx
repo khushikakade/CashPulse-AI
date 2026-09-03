@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import CountUp from "../components/CountUp";
-import { Receipt, Clock } from "lucide-react";
+import EmptyState from "../components/EmptyState";
+import { Receipt, Clock, Mail, CheckCircle2 } from "lucide-react";
 
 interface Invoice {
   id: string;
@@ -105,10 +106,10 @@ export default function Receivables() {
   const overdueCount = invoices.filter((i) => i.status === "overdue").length;
 
   return (
-    <div className="flex bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
+    <div className="flex flex-col md:flex-row bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
       <Sidebar />
 
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto max-w-5xl mx-auto space-y-10">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto max-w-5xl mx-auto space-y-8 sm:space-y-10 pb-24 md:pb-10 w-full min-w-0">
         {/* Header */}
         <header className="pb-4 border-b border-[#E5E1D8]">
           <span className="badge-sage text-xs mb-1.5">
@@ -138,17 +139,20 @@ export default function Receivables() {
             </strong>
             . {overdueCount > 0 ? (
               <span>
-                There are <strong className="text-[#8E3015] font-bold">{overdueCount} overdue fest orders</strong> that CashPulse is following up with via automated WhatsApp payment links.
+                <strong className="text-[#8E3015] font-bold">
+                  {overdueCount} {overdueCount === 1 ? "bill is" : "bills are"} overdue
+                </strong>{" "}
+                and being gently nudged by CashPulse.
               </span>
             ) : (
-              <span>All customer accounts are currently on schedule.</span>
+              <span>All invoices are within their grace period.</span>
             )}
           </p>
         </section>
 
         {/* Invoices Table in Warm Floating Card */}
         <section className="warm-card overflow-hidden">
-          <div className="p-5 border-b border-[#E5E1D8] flex items-center justify-between">
+          <div className="p-5 border-b border-[#E5E1D8] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h2 className="font-display text-base font-bold text-[#141312]">
                 Customer Bill List
@@ -157,96 +161,114 @@ export default function Receivables() {
                 Ranked by payment likelihood and overdue date
               </p>
             </div>
-            <span className="badge-neutral text-xs font-semibold">
+            <span className="badge-neutral text-xs font-semibold self-start sm:self-auto">
               {invoices.length} accounts • ₹{totalOutstanding.toLocaleString("en-IN")} total
             </span>
           </div>
+          {invoices.length === 0 ? (
+            <div className="p-6">
+              <EmptyState
+                icon={Receipt}
+                badge="Zero Dues"
+                title="No pending customer bills"
+                description="All client accounts are completely settled. When you issue a new invoice, CashPulse will track its payment status here."
+                actionLabel="Explore Today's Cash"
+                actionHref="/dashboard"
+                variant="sage"
+              />
+            </div>
+          ) : (
+            <div className="table-scroll-container">
+              <table className="w-full text-left text-xs text-[#54504A] min-w-[640px]">
+                <thead className="bg-[#F4F1EA] text-[11px] font-bold text-[#706B63] border-b border-[#E5E1D8]">
+                  <tr>
+                    <th className="px-6 py-3.5">Customer / College Fest</th>
+                    <th className="px-6 py-3.5">Invoice #</th>
+                    <th className="px-6 py-3.5">Bill Amount</th>
+                    <th className="px-6 py-3.5">Due Date</th>
+                    <th className="px-6 py-3.5">Chance They'll Pay</th>
+                    <th className="px-6 py-3.5">Payment Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E5E1D8]">
+                  {invoices.map((inv) => {
+                    const prob = Math.round(inv.probability_of_payment * 100);
+                    const isHigh = prob >= 80;
+                    const isMed = prob >= 60 && prob < 80;
+                    const isPaid = inv.status === "paid";
+                    const isOverdue = inv.status === "overdue";
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-[#54504A]">
-              <thead className="bg-[#F4F1EA] text-[11px] font-bold text-[#706B63] border-b border-[#E5E1D8]">
-                <tr>
-                  <th className="px-6 py-3.5">Customer / College Fest</th>
-                  <th className="px-6 py-3.5">Invoice #</th>
-                  <th className="px-6 py-3.5">Bill Amount</th>
-                  <th className="px-6 py-3.5">Due Date</th>
-                  <th className="px-6 py-3.5">Chance They'll Pay</th>
-                  <th className="px-6 py-3.5">Payment Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E5E1D8]">
-                {invoices.map((inv) => {
-                  const prob = Math.round(inv.probability_of_payment * 100);
-                  const isHigh = prob >= 80;
-                  const isMed = prob >= 60 && prob < 80;
-                  const isPaid = inv.status === "paid";
-                  const isOverdue = inv.status === "overdue";
-
-                  return (
-                    <tr
-                      key={inv.id}
-                      className="hover:bg-[#FAF9F6] transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-[#EAF3ED] text-[#194F34] font-bold flex items-center justify-center text-xs shrink-0">
-                            {inv.customer?.name ? inv.customer.name.charAt(0) : "D"}
-                          </div>
-                          <div>
-                            <div className="font-bold text-[#141312]">
-                              {inv.customer?.name}
+                    return (
+                      <tr
+                        key={inv.id}
+                        className="hover:bg-[#FAF9F6] transition-colors"
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-[#EAF3ED] text-[#194F34] font-bold flex items-center justify-center text-xs shrink-0">
+                              {inv.customer?.name ? inv.customer.name.charAt(0) : "D"}
                             </div>
-                            <div className="text-[11px] text-[#706B63]">
-                              {inv.customer?.email}
+                            <div>
+                              <div className="font-bold text-[#141312]">
+                                {inv.customer?.name}
+                              </div>
+                              <a
+                                href={`mailto:${inv.customer?.email}`}
+                                className="text-[11px] text-[#194F34] hover:underline flex items-center gap-1 mt-0.5"
+                                title={`Email ${inv.customer?.name}`}
+                              >
+                                <Mail className="w-3 h-3 text-[#194F34]" />
+                                <span>{inv.customer?.email}</span>
+                              </a>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 font-mono font-medium text-[#141312]">
-                        {inv.invoice_number}
-                      </td>
-                      <td className="px-6 py-4 font-display font-bold text-sm text-[#141312]">
-                        ₹{inv.amount.toLocaleString("en-IN", { minimumFractionDigits: 0 })}
-                      </td>
-                      <td className="px-6 py-4 text-[#383531]">
-                        {new Date(inv.due_date).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric"
-                        })}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={
-                            isHigh
-                              ? "badge-sage text-[11px]"
-                              : isMed
-                              ? "badge-honey text-[11px]"
-                              : "badge-peach text-[11px]"
-                          }
-                        >
-                          {prob}% chance
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={
-                            isPaid
-                              ? "badge-sage text-[11px]"
-                              : isOverdue
-                              ? "badge-peach text-[11px]"
-                              : "badge-neutral text-[11px]"
-                          }
-                        >
-                          {isPaid ? "Paid & Settled" : isOverdue ? "Overdue" : "Due Soon"}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        </td>
+                        <td className="px-6 py-4 font-mono font-medium text-[#141312]">
+                          {inv.invoice_number}
+                        </td>
+                        <td className="px-6 py-4 font-display font-bold text-sm text-[#141312]">
+                          ₹{inv.amount.toLocaleString("en-IN", { minimumFractionDigits: 0 })}
+                        </td>
+                        <td className="px-6 py-4 text-[#383531]">
+                          {new Date(inv.due_date).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric"
+                          })}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={
+                              isHigh
+                                ? "badge-sage text-[11px]"
+                                : isMed
+                                ? "badge-honey text-[11px]"
+                                : "badge-peach text-[11px]"
+                            }
+                          >
+                            {prob}% chance
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={
+                              isPaid
+                                ? "badge-sage text-[11px]"
+                                : isOverdue
+                                ? "badge-peach text-[11px]"
+                                : "badge-neutral text-[11px]"
+                            }
+                          >
+                            {isPaid ? "Paid & Settled" : isOverdue ? "Overdue" : "Due Soon"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       </main>
     </div>

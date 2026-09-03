@@ -72,7 +72,27 @@ def test_policy_engine_evaluation(db_session):
     assert result_blocked["allowed"] is False
     assert "MAX_PAYMENT_RETRIES limit reached" in result_blocked["blocked_by"]
 
-def test_webhook_signature_verification():
-    from backend.app.services.razorpay_client import razorpay_client
-    # In development/mock mode, signature verification should always pass
+def test_razorpay_webhook_signature_verification():
+    from backend.app.services.razorpay_client import razorpay_client, RazorpayClientWrapper
+    # In simulated/placeholder mode, verification passes
     assert razorpay_client.verify_webhook_signature("{}", "any_signature") is True
+    
+    # With explicit secret
+    wrapper = RazorpayClientWrapper(key_id="rzp_test_123", key_secret="sec_123", webhook_secret="my_wh_secret_999")
+    payload = '{"event": "payment.captured", "id": "evt_test_123"}'
+    valid_sig = wrapper.generate_test_signature(payload)
+    assert wrapper.verify_webhook_signature(payload, valid_sig) is True
+    assert wrapper.verify_webhook_signature(payload, "tampered_signature") is False
+
+def test_cashfree_webhook_signature_verification():
+    from backend.app.services.cashfree_client import cashfree_client, CashfreeClientWrapper
+    # In simulated mode, verification passes
+    assert cashfree_client.verify_webhook_signature("{}", "1777200000", "any_sig") is True
+    
+    # With explicit secret
+    cf_wrapper = CashfreeClientWrapper(app_id="cf_app_123", secret_key="cf_sec_key_xyz")
+    payload = '{"type": "PAYMENT_SUCCESS_WEBHOOK", "data": {"order": {"order_id": "cf_ord_99"}}}'
+    ts = "1777203600"
+    valid_sig = cf_wrapper.generate_test_signature(payload, ts)
+    assert cf_wrapper.verify_webhook_signature(payload, ts, valid_sig) is True
+    assert cf_wrapper.verify_webhook_signature(payload, ts, "invalid_sig_base64==") is False

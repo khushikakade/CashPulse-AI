@@ -47,12 +47,12 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="bg-[#FAF9F6] text-[#1A1A1A] min-h-screen flex flex-col items-center justify-center font-sans px-4 py-12">
+    <div className="bg-[#FAF9F6] text-[#1A1A1A] min-h-screen flex flex-col items-center justify-center font-sans px-4 py-12 relative overflow-x-hidden w-full">
       {/* Decorative Warm Ambient Glow */}
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-[#EAF3ED] rounded-full blur-3xl opacity-60 pointer-events-none" />
       <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-[#FEF8E8] rounded-full blur-3xl opacity-60 pointer-events-none" />
 
-      <div className="max-w-lg w-full warm-card p-8 sm:p-10 space-y-8 relative z-10 shadow-2xl">
+      <div className="max-w-lg w-full warm-card p-6 sm:p-10 space-y-8 relative z-10 shadow-2xl">
         {/* Brand & Progress Header */}
         <div className="flex items-center justify-between border-b border-[#E8E5DF] pb-5">
           <Link href="/" title="Back to CashPulse.com" className="flex items-center gap-3 group">
@@ -107,7 +107,7 @@ export default function Onboarding() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g. Aarav Electronics or Zenith Logistics"
+                  placeholder="e.g. द्वीSakhi Merch Co. (or Mumbai Apparel Studio)"
                   className="w-full px-4 py-3 bg-[#FFFFFF] border border-[#E8E5DF] rounded-xl text-sm focus:outline-none focus:border-[#225C3E] focus:ring-1 focus:ring-[#225C3E] text-[#1A1A1A] placeholder-[#A8A59E]"
                   autoFocus
                 />
@@ -139,7 +139,7 @@ export default function Onboarding() {
                 }
                 setStep(2);
               }}
-              className="btn-primary w-full text-sm py-3.5"
+              className="btn-primary w-full text-sm py-3.5 min-h-[44px]"
             >
               Continue to Operations &rarr;
             </button>
@@ -168,7 +168,7 @@ export default function Onboarding() {
                   type="text"
                   value={formData.product_sold}
                   onChange={(e) => setFormData({ ...formData, product_sold: e.target.value })}
-                  placeholder="e.g. Industrial Pumps, Apparel, IT Consulting"
+                  placeholder="e.g. D2C Apparel & Merch, College Fest Orders, Studio Prints"
                   className="w-full px-4 py-3 bg-[#FFFFFF] border border-[#E8E5DF] rounded-xl text-sm focus:outline-none focus:border-[#225C3E] focus:ring-1 focus:ring-[#225C3E] text-[#1A1A1A] placeholder-[#A8A59E]"
                 />
               </div>

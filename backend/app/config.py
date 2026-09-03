@@ -12,10 +12,16 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./cashpulse.db"
     REDIS_URL: Optional[str] = None
     
-    # Razorpay Credentials (test mode)
+    # Razorpay Credentials (test/live mode)
     RAZORPAY_KEY_ID: str = "rzp_test_placeholder_key"
     RAZORPAY_KEY_SECRET: str = "rzp_test_placeholder_secret"
     RAZORPAY_WEBHOOK_SECRET: str = "rzp_webhook_secret_placeholder"
+    
+    # Cashfree Credentials (sandbox/live mode)
+    CASHFREE_APP_ID: str = "cf_test_placeholder_app_id"
+    CASHFREE_SECRET_KEY: str = "cf_test_placeholder_secret_key"
+    CASHFREE_API_VERSION: str = "2023-08-01"
+    CASHFREE_ENV: str = "SANDBOX"  # Options: SANDBOX, PRODUCTION
     
     # LLM settings
     GEMINI_API_KEY: Optional[str] = None

@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import CountUp from "../components/CountUp";
+import EmptyState from "../components/EmptyState";
 import Link from "next/link";
-import { RotateCcw, ArrowRight, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
+import { RotateCcw, ArrowRight, ShieldCheck, CheckCircle2, AlertCircle, Mail } from "lucide-react";
 
 interface Case {
   id: string;
@@ -125,10 +126,10 @@ export default function RecoveryCases() {
       : 75.0;
 
   return (
-    <div className="flex bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
+    <div className="flex flex-col md:flex-row bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
       <Sidebar />
 
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto max-w-5xl mx-auto space-y-10">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto max-w-5xl mx-auto space-y-8 sm:space-y-10 pb-24 md:pb-10 w-full min-w-0">
         {/* Header */}
         <header className="pb-4 border-b border-[#E5E1D8]">
           <span className="badge-sage text-xs mb-1.5">
@@ -199,7 +200,7 @@ export default function RecoveryCases() {
 
         {/* Cases Table in Warm Floating Card */}
         <section className="warm-card overflow-hidden">
-          <div className="p-5 border-b border-[#E5E1D8] flex items-center justify-between">
+          <div className="p-5 border-b border-[#E5E1D8] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h2 className="font-display text-base font-bold text-[#141312]">
                 Customer Case Files
@@ -208,81 +209,104 @@ export default function RecoveryCases() {
                 Ranked by likelihood of collecting payment smoothly
               </p>
             </div>
-            <span className="badge-neutral text-xs font-semibold">{cases.length} cases</span>
+            <span className="badge-neutral text-xs font-semibold self-start sm:self-auto">{cases.length} cases</span>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-[#54504A]">
-              <thead className="bg-[#F4F1EA] text-[11px] font-bold text-[#706B63] border-b border-[#E5E1D8]">
-                <tr>
-                  <th className="px-6 py-3.5">Customer</th>
-                  <th className="px-6 py-3.5">Bill Type</th>
-                  <th className="px-6 py-3.5">Risk Level</th>
-                  <th className="px-6 py-3.5">Chance We'll Collect</th>
-                  <th className="px-6 py-3.5">Current Status</th>
-                  <th className="px-6 py-3.5 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E5E1D8]">
-                {cases.map((c) => {
-                  const prob = Math.round(c.recovery_probability * 100);
-                  const isRecovered = c.current_status === "recovered";
-                  const isReview = c.current_status === "human_review";
+          {cases.length === 0 ? (
+            <div className="p-6">
+              <EmptyState
+                icon={RotateCcw}
+                badge="Clean Slate"
+                title="No stuck payments or active recovery cases"
+                description="CashPulse is actively monitoring your connected accounts. If any customer checkout drops or invoice delays, an automated recovery file will appear here."
+                actionLabel="Check Today's Cash"
+                actionHref="/dashboard"
+                secondaryLabel="View Receivables"
+                secondaryHref="/receivables"
+                variant="sage"
+              />
+            </div>
+          ) : (
+            <div className="table-scroll-container">
+              <table className="w-full text-left text-xs text-[#54504A] min-w-[640px]">
+                <thead className="bg-[#F4F1EA] text-[11px] font-bold text-[#706B63] border-b border-[#E5E1D8]">
+                  <tr>
+                    <th className="px-6 py-3.5">Customer</th>
+                    <th className="px-6 py-3.5">Bill Type</th>
+                    <th className="px-6 py-3.5">Risk Level</th>
+                    <th className="px-6 py-3.5">Chance We'll Collect</th>
+                    <th className="px-6 py-3.5">Current Status</th>
+                    <th className="px-6 py-3.5 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E5E1D8]">
+                  {cases.map((c) => {
+                    const prob = Math.round(c.recovery_probability * 100);
+                    const isRecovered = c.current_status === "recovered";
+                    const isReview = c.current_status === "human_review";
 
-                  return (
-                    <tr key={c.id} className="hover:bg-[#FAF9F6] transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="font-bold text-[#141312]">{c.customer?.name}</div>
-                        <div className="text-[11px] text-[#706B63]">{c.customer?.email}</div>
-                      </td>
-                      <td className="px-6 py-4 capitalize font-semibold text-[#141312]">
-                        {c.reference_type === "invoice" ? "Overdue Invoice" : "Online Checkout"}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={
-                            c.risk_level === "high"
-                              ? "badge-peach text-[11px]"
-                              : "badge-honey text-[11px]"
-                          }
-                        >
-                          {c.risk_level === "high" ? "High Delay Risk" : "Medium Delay Risk"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 font-display font-bold text-[#141312]">
-                        {prob}%
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={
-                            isRecovered
-                              ? "badge-sage text-[11px]"
+                    return (
+                      <tr key={c.id} className="hover:bg-[#FAF9F6] transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="font-bold text-[#141312]">{c.customer?.name}</div>
+                          <a
+                            href={`mailto:${c.customer?.email}`}
+                            className="text-[11px] text-[#194F34] hover:underline flex items-center gap-1 mt-0.5"
+                            title={`Email ${c.customer?.name}`}
+                          >
+                            <Mail className="w-3 h-3 text-[#194F34]" />
+                            <span>{c.customer?.email}</span>
+                          </a>
+                        </td>
+                        <td className="px-6 py-4 capitalize font-semibold text-[#141312]">
+                          {c.reference_type === "invoice" ? "Overdue Invoice" : "Online Checkout"}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={
+                              c.risk_level === "high"
+                                ? "badge-peach text-[11px]"
+                                : "badge-honey text-[11px]"
+                            }
+                          >
+                            {c.risk_level === "high" ? "High Delay Risk" : "Medium Delay Risk"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 font-display font-bold text-[#141312]">
+                          {prob}%
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={
+                              isRecovered
+                                ? "badge-sage text-[11px]"
+                                : isReview
+                                ? "badge-peach text-[11px]"
+                                : "badge-neutral text-[11px]"
+                            }
+                          >
+                            {isRecovered
+                              ? "Recovered 🎉"
                               : isReview
-                              ? "badge-peach text-[11px]"
-                              : "badge-neutral text-[11px]"
-                          }
-                        >
-                          {isRecovered
-                            ? "Recovered 🎉"
-                            : isReview
-                            ? "Waiting For Your OK"
-                            : "Reminder Sent"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <Link
-                          href={`/recovery/${c.id}`}
-                          className="btn-secondary text-[11px] px-3.5 py-1.5"
-                        >
-                          Open File &rarr;
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                              ? "Waiting For Your OK"
+                              : "Reminder Sent"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <Link
+                            href={`/recovery/${c.id}`}
+                            className="btn-secondary text-[11px] px-3.5 py-2 inline-flex items-center min-h-[38px]"
+                          >
+                            Open File &rarr;
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       </main>
     </div>

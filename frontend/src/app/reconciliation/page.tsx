@@ -65,10 +65,10 @@ export default function Reconciliation() {
   }, []);
 
   return (
-    <div className="flex bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
+    <div className="flex flex-col md:flex-row bg-[#FAF9F6] text-[#141312] min-h-screen font-sans">
       <Sidebar />
 
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto max-w-5xl mx-auto space-y-10">
+      <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto max-w-5xl mx-auto space-y-8 sm:space-y-10 pb-24 md:pb-10 w-full min-w-0">
         {/* Header */}
         <header className="pb-4 border-b border-[#E5E1D8]">
           <span className="badge-sage text-xs mb-1.5">
@@ -201,8 +201,8 @@ export default function Reconciliation() {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-[#54504A]">
+          <div className="table-scroll-container">
+            <table className="w-full text-left text-xs text-[#54504A] min-w-[640px]">
               <thead className="bg-[#F4F1EA] text-[11px] font-bold text-[#706B63] border-b border-[#E5E1D8]">
                 <tr>
                   <th className="px-6 py-3.5">Customer / Order Reference</th>
