@@ -243,14 +243,13 @@ cp .env.example .env
 
 ### 2. Start the Backend (FastAPI)
 ```bash
-cd backend
-python -m pip install --upgrade pip
-pip install -r requirements.txt
+# Install backend dependencies
+pip install -r backend/requirements.txt
 
-# Seed the database with demo business data
+# Seed the database with demo business data (run from project root)
 python -m backend.scripts.seed_dwisakhi
 
-# Launch the FastAPI dev server
+# Launch the FastAPI dev server (run from project root)
 python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 * 📘 Swagger API Docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)

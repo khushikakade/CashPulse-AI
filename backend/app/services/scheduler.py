@@ -57,7 +57,7 @@ class BackgroundScanner:
 
             # 2. Run orchestrator risk detection
             detected_cases = AgentOrchestrator.scan_and_detect_risks(db)
-            cases_count = len(detected_cases) if detected_cases else 0
+            cases_count = len(detected_cases) if isinstance(detected_cases, (list, tuple)) else (detected_cases or 0)
 
             self.last_run_at = datetime.utcnow()
             self.total_runs += 1
